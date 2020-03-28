@@ -1,7 +1,7 @@
 #!/bin/bash
-git checkout master
 git fetch upstream
-git pull upstream master
+git checkout mceasso
+git rebase upstream/master
 git push
 cd ../..
 make all
