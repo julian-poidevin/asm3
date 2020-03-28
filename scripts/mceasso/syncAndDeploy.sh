@@ -1,6 +1,6 @@
 #!/bin/bash
-git checkout mceasso
 git fetch upstream
+git checkout mceasso
 git rebase upstream/master
 git push
 cd ../..
