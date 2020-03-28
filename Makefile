@@ -141,3 +141,6 @@ deps:
 	#apt-get install python3-webpy # Broken in buster, use below for now
 	pip3 install git+https://github.com/webpy/webpy#egg=web.py
 
+syncAndDeploy:
+	cd ./scripts/mceasso; \
+    ./syncAndDeploy.sh
