@@ -143,4 +143,4 @@ deps:
 
 syncAndDeploy:
 	cd ./scripts/mceasso; \
-    ./syncAndDeploy.sh
+    ./syncDeploy.sh
