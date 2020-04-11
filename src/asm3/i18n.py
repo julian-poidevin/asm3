@@ -6,8 +6,8 @@ import time
 # flake8: noqa - we have a lot of locales and this is convenient
 from asm3.locales import *
 
-VERSION = "44u [Wed  8 Apr 16:38:21 BST 2020]"
-BUILD = "04081638"
+VERSION = "44u [Sat 11 Apr 09:48:30 BST 2020]"
+BUILD = "04110948"
 
 DMY = ( "%d/%m/%Y", "%d/%m/%y" )
 HDMY = ( "%d-%m-%Y", "%d-%m-%y" )
@@ -77,6 +77,7 @@ locale_maps = {
     "en_CR":    ( "English", "Costa Rica", DMY, "&#8353;", PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_CY":    ( "English", "Cyprus", DMY, EURO, PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_ES":    ( "English", "Spain", DMY, EURO, PLURAL_ENGLISH, CURRENCY_SUFFIX, 2, ",", " " ),
+    "en_HK":    ( "English", "Hong Kong", HDMY, DOLLAR, PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_KH":    ( "English", "Cambodia", DMY, DOLLAR, PLURAL_ENGLISH, CURRENCY_SUFFIX, 2, ".", "," ),
     "en_KW":    ( "English", "Kuwait", DMY, "KD", PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_KY":    ( "English", "Caymen Islands", DMY, DOLLAR, PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
@@ -148,10 +149,12 @@ def real_locale(locale = "en"):
     #   en_AU (Australia)
     #   en_CA (Canada)
     #   en_GB (UK)
-    if locale in ("en_AE", "en_BE", "en_BG", "en_BQ", "en_CH", "en_CY", "en_ES", "en_IE", "en_IN", "en_KH", "en_LU", 
-                  "en_MY", "en_NA", "en_PH", "en_TH", "en_TW", "en_VN", "en_ZA"):
+    if locale in ("en_AE", "en_BE", "en_BG", "en_BQ", "en_CH", "en_CN", "en_CY", "en_ES", 
+        "en_HK", "en_IE", "en_IN", "en_JP", "en_KH", "en_LB", "en_LU", "en_MY", "en_NA", "en_PH", 
+        "en_QA", "en_TH", "en_TW", "en_TW2", "en_VN", "en_ZA"):
         locale = "en_GB"
-    if locale in ("en_BH", "en_CO", "en_KY", "en_KW", "en_IL", "en_LB", "en_MX"):
+    if locale in ("en_AW", "en_BH", "en_CO", "en_CR", "en_KW", "en_KY", "en_IL", "en_LB", 
+        "en_MX"):
         locale = "en"
     if locale in ("en_NZ",):
         locale = "en_AU"
@@ -675,38 +678,3 @@ def today():
     d = datetime.datetime.now()
     return datetime.datetime(d.year, d.month, d.day)
 
-def i18nstringsjs(l):
-    """
-    Returns a javascript format file containing the language file
-    """
-    langs = "{}"
-    try:
-        lang = globals()["locale_" + real_locale(l)]
-        langs = json.dumps(lang.val)
-    except:
-        pass
-    s = "i18n_lang = " + langs + ";\n"
-    s += """
-(function($) {
-    _ = function(key) {
-        try {
-            var v = key;
-            if (i18n_lang.hasOwnProperty(key)) {
-                if ($.trim(i18n_lang[key]) != "" && i18n_lang[key].indexOf("??") != 0 && i18n_lang[key].indexOf("(??") != 0) {
-                    v = i18n_lang[key];
-                }
-                else {
-                    v = key;
-                }
-            }
-            else {
-                v = key;
-            }
-            return $("<div></div>").html(v).text();
-        }
-        catch (err) {
-            return "[error]";
-        }
-    };
-}) (jQuery);\n"""
-    return s

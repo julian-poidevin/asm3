@@ -1,7 +1,7 @@
 
 import asm3.al
 import asm3.audit
-import asm3.cachedisk
+import asm3.cachemem
 import asm3.configuration
 import asm3.db
 import asm3.dbupdate
@@ -460,15 +460,15 @@ def get_active_users(dbo):
     Returns a list of active users on the system
     USERNAME, SINCE, MESSAGES
     """
-    return asm3.utils.nulltostr(asm3.cachedisk.get("activity", dbo.database))
+    return asm3.utils.nulltostr(asm3.cachemem.get("activity_%s" % dbo.database))
 
-def logout(session, remoteip = ""):
+def logout(session, remoteip = "", useragent = ""):
     """
     Logs the user session out
     """
     try:
         asm3.al.info("%s logged out" % session.user, "users.logout", session.dbo)
-        asm3.audit.logout(session.dbo, session.user, remoteip)
+        asm3.audit.logout(session.dbo, session.user, remoteip, useragent)
         session.user = None
         session.kill()
     except:
@@ -480,7 +480,7 @@ def update_user_activity(dbo, user, timenow = True):
     If timenow is False, removes this user from the active list.
     """
     if dbo is None or user is None: return
-    ac = asm3.utils.nulltostr(asm3.cachedisk.get("activity", dbo.database))
+    ac = asm3.utils.nulltostr(asm3.cachemem.get("activity_%s" % dbo.database))
     # Prune old activity and remove the current user
     nc = []
     for a in ac.split(","):
@@ -503,7 +503,7 @@ def update_user_activity(dbo, user, timenow = True):
     # Add this user with the new time 
     if timenow: 
         nc.append("%s=%s" % (user, asm3.i18n.format_date("%Y-%m-%d %H:%M:%S", asm3.i18n.now(dbo.timezone))))
-    asm3.cachedisk.put("activity", dbo.database, ",".join(nc), 3600 * 8)
+    asm3.cachemem.put("activity_%s" % dbo.database, ",".join(nc), 3600 * 8)
 
 def get_personid(dbo, user):
     """
@@ -657,7 +657,7 @@ def update_session(session):
     session.theme = theme
     session.config_ts = asm3.i18n.format_date("%Y%m%d%H%M%S", asm3.i18n.now())
 
-def web_login(post, session, remoteip, path):
+def web_login(post, session, remoteip, useragent, path):
     """
     Performs a login and sets up the user's session.
     Returns the username on successful login, or:
@@ -681,15 +681,15 @@ def web_login(post, session, remoteip, path):
     # Connect to the database and authenticate the username and password
     user = authenticate(dbo, username, password)
     if user is not None and not authenticate_ip(user, remoteip):
-        asm3.al.error("user %s with ip %s failed ip restriction check '%s'" % (username, remoteip, user.IPRESTRICTION), "users.web_login", dbo)
+        asm3.al.error("user %s from %s [%s] failed ip restriction check '%s'" % (username, remoteip, useragent, user.IPRESTRICTION), "users.web_login", dbo)
         return "FAIL"
     
     if user is not None and "DISABLELOGIN" in user and user.DISABLELOGIN == 1:
-        asm3.al.error("user %s with ip %s failed as account has logins disabled" % (username, remoteip), "users.web_login", dbo)
+        asm3.al.error("user %s from %s [%s] failed as account has logins disabled" % (username, remoteip, useragent), "users.web_login", dbo)
         return "FAIL"
 
     if user is not None:
-        asm3.al.info("%s successfully authenticated from %s" % (username, remoteip), "users.web_login", dbo)
+        asm3.al.info("%s successfully authenticated from %s [%s]" % (username, remoteip, useragent), "users.web_login", dbo)
 
         try:
             dbo.locked = asm3.configuration.smdb_locked(dbo)
@@ -747,7 +747,7 @@ def web_login(post, session, remoteip, path):
         try:
             # Mark the user logged in
             if not nologconnection: 
-                asm3.audit.login(dbo, username, remoteip)
+                asm3.audit.login(dbo, username, remoteip, useragent)
 
             # Check to see if any updates need performing on this database
             if asm3.dbupdate.check_for_updates(dbo):
@@ -770,7 +770,7 @@ def web_login(post, session, remoteip, path):
             asm3.al.error("failed updating user activity: %s" % str(sys.exc_info()[0]), "users.web_login", dbo, sys.exc_info())
             return "FAIL"
     else:
-        asm3.al.error("database:%s username:%s password:%s failed authentication from %s" % (database, username, password, remoteip), "users.web_login", dbo)
+        asm3.al.error("database:%s username:%s password:%s failed authentication from %s [%s]" % (database, username, password, remoteip, useragent), "users.web_login", dbo)
         return "FAIL"
 
     return user.USERNAME
