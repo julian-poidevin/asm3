@@ -147,6 +147,6 @@ deps:
 	apt-get install exuberant-ctags nodejs flake8 imagemagick wkhtmltopdf
 	apt-get install python3-webpy # See README for fix
 
-syncAndDeploy:
+deploy:
 	cd ./scripts/mceasso; \
-    ./syncDeploy.sh
+    ./Deploy.sh

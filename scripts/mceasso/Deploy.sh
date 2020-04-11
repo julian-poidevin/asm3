@@ -1,8 +1,4 @@
 #!/bin/bash
-git fetch upstream
-git checkout mceasso
-git rebase upstream/master
-git push
 cd ../..
 make all
 make dist
