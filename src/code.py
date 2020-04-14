@@ -1292,11 +1292,13 @@ class animal_bulk(JSONEndpoint):
         dbo = o.dbo
         return {
             "ynun": asm3.lookups.get_ynun(dbo),
+            "ynunk": asm3.lookups.get_ynunk(dbo),
             "animaltypes": asm3.lookups.get_animal_types(dbo),
             "autolitters": asm3.animal.get_active_litters_brief(dbo),
             "flags": asm3.lookups.get_animal_flags(dbo),
             "entryreasons": asm3.lookups.get_entryreasons(dbo),
             "internallocations": asm3.lookups.get_internal_locations(dbo, o.locationfilter, o.siteid),
+            "logtypes": asm3.lookups.get_log_types(dbo),
             "movementtypes": asm3.lookups.get_movement_types(dbo)
         }
 
@@ -4507,11 +4509,12 @@ class person_embed(ASMEndpoint):
         forenames = post["forenames"]
         address = post["address"]
         email = post["emailaddress"]
-        p = asm3.person.get_person_similar(dbo, email, surname, forenames, address)
+        mobile = post["mobiletelephone"]
+        p = asm3.person.get_person_similar(dbo, email, mobile, surname, forenames, address)
         if len(p) == 0:
-            asm3.al.debug("No similar people found for %s, %s, %s" % (surname, forenames, address), "code.person_embed", dbo)
+            asm3.al.debug("No similar people found for %s, %s, %s, %s, %s" % (email, mobile, surname, forenames, address), "code.person_embed", dbo)
         else:
-            asm3.al.debug("found similar people for %s, %s, %s: got %d records" % (surname, forenames, address, len(p)), "code.person_embed", dbo)
+            asm3.al.debug("found similar people for %s, %s, %s, %s, %s: got %d records" % (email, mobile, surname, forenames, address, len(p)), "code.person_embed", dbo)
         return asm3.utils.json(p)
 
     def post_add(self, o):

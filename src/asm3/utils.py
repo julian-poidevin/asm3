@@ -246,6 +246,17 @@ class AdvancedSearchBuilder(object):
             self.values.append(self.post.date(cfieldfrom))
             self.values.append(self.post.datetime(cfieldto, "dayend"))
 
+    def add_phone_triplet(self, cfield, field, field2, field3): 
+        """ Adds a clause for a posted value to one of three telephone fields """
+        if self.post[cfield] != "":
+            x = asm3.utils.atoi(self.post[cfield])
+            if x < 999: return # need at least 4 digits for searching phone numbers
+            x = "%%%s%%" % x
+            self.ands.append("(%s LIKE ? OR %s LIKE ? OR %s LIKE ?)" % (self.dbo.sql_atoi(field), self.dbo.sql_atoi(field2), self.dbo.sql_atoi(field3)))
+            self.values.append(x)
+            self.values.append(x)
+            self.values.append(x)
+
     def add_filter(self, f, condition):
         """ Adds a complete clause if posted filter value is present """
         if self.post["filter"].find(f) != -1: self.ands.append(condition)
@@ -299,10 +310,20 @@ class SimpleSearchBuilder(object):
         self.ors.append("%s = ?" % field)
         self.values.append(value)
 
+    def add_field_phone(self, field):
+        """ Adds a phone number field to search """
+        x = asm3.utils.atoi(self.qlike)
+        if x < 999: return # need at least 4 digits for searching phone numbers
+        self.ors.append("%s LIKE ?" % self.dbo.sql_atoi(field))
+        self.values.append("%%%s%%" % x)
+
     def add_fields(self, fieldlist):
         """ Add clauses for many fields in one list """
         for f in fieldlist:
-            self.add_field(f)
+            if f.find("Telephone") != -1:
+                self.add_field_phone(f)
+            else:
+                self.add_field(f)
 
     def add_large_text_fields(self, fieldlist):
         """ Add clauses for many large text fields (only search in smaller databases) in one list """
