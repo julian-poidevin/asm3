@@ -28,6 +28,13 @@ THIS_YEAR = 2
 LAST_MONTH = 3
 LAST_WEEK = 4
 
+WEEKLY = 1
+FORTNIGHTLY = 2
+MONTHLY = 3
+QUARTERLY = 4
+HALF_YEARLY = 5
+ANNUALLY = 6
+
 ASCENDING = 0
 DESCENDING = 1
 
@@ -718,27 +725,27 @@ def check_create_next_donation(dbo, username, odid):
     a sequence needs to be created for donations with a frequency 
     """
     asm3.al.debug("Create next donation %d" % odid, "financial.check_create_next_donation", dbo)
-    d = dbo.query("SELECT * FROM ownerdonation WHERE ID = ?", [odid])
-    if len(d) == 0: 
+    d = dbo.first_row(dbo.query("SELECT * FROM ownerdonation WHERE ID = ?", [odid]))
+    if d is None:
         asm3.al.error("No donation found for %d" % odid, "financial.check_create_next_donation", dbo)
         return
 
-    d = d[0]
     # If we have a frequency > 0, the nextcreated flag isn't set
     # and there's a datereceived and due then we need to create the
     # next donation in the sequence
     if d.DATEDUE is not None and d.DATE is not None and d.FREQUENCY > 0 and d.NEXTCREATED == 0:
-
         nextdue = d.DATEDUE
-        if d.FREQUENCY == 1:
+        if d.FREQUENCY == WEEKLY:
             nextdue = asm3.i18n.add_days(nextdue, 7)
-        if d.FREQUENCY == 2:
+        elif d.FREQUENCY == FORTNIGHTLY:
+            nextdue = asm3.i18n.add_days(nextdue, 14)
+        elif d.FREQUENCY == MONTHLY:
             nextdue = asm3.i18n.add_months(nextdue, 1)
-        if d.FREQUENCY == 3:
+        elif d.FREQUENCY == QUARTERLY:
             nextdue = asm3.i18n.add_months(nextdue, 3)
-        if d.FREQUENCY == 4:
+        elif d.FREQUENCY == HALF_YEARLY:
             nextdue = asm3.i18n.add_months(nextdue, 6)
-        if d.FREQUENCY == 5:
+        elif d.FREQUENCY == ANNUALLY:
             nextdue = asm3.i18n.add_years(nextdue, 1)
         asm3.al.debug("Next donation due %s" % str(nextdue), "financial.check_create_next_donation", dbo)
 

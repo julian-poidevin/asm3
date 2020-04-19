@@ -137,24 +137,24 @@ def get_onlineform_html(dbo, formid, completedocument = True):
         cname = asm3.html.escape(fname)
         fid = "f%d" % f.ID
         h.append('<tr class="asm-onlineform-tr">')
-        if f.FIELDTYPE == FIELDTYPE_RAWMARKUP:
-            h.append('<td class="asm-onlineform-td" colspan="2">')
-        elif f.FIELDTYPE == FIELDTYPE_CHECKBOX:
-            h.append('<td class="asm-onlineform-td"></td><td class="asm-onlineform-td">')
-        else:
-            # Add label and cell wrapper if it's not raw markup or a checkbox
-            h.append('<td class="asm-onlineform-td">')
-            h.append('<label for="%s">%s</label>' % ( fid, f.LABEL ))
-            h.append('</td>')
-            h.append('<td class="asm-onlineform-td">')
         required = ""
         requiredtext = ""
+        requiredspan = '<span class="asm-onlineform-notrequired"></span>'
+        requiredspan = ""
         if f.MANDATORY == 1: 
             required = "required=\"required\""
             requiredtext = "required=\"required\" pattern=\".*\\S+.*\""
-            h.append('<span class="asm-onlineform-required" style="color: #ff0000;">*</span>')
+            requiredspan = '<span class="asm-onlineform-required" style="color: #ff0000; float: right;">*</span>'
+        if f.FIELDTYPE == FIELDTYPE_RAWMARKUP:
+            h.append('<td class="asm-onlineform-td" colspan="2">')
+        elif f.FIELDTYPE == FIELDTYPE_CHECKBOX:
+            h.append('<td class="asm-onlineform-td">%s</td><td class="asm-onlineform-td">' % requiredspan)
         else:
-            h.append('<span class="asm-onlineform-notrequired" style="visibility: hidden">*</span>')
+            # Add label and cell wrapper if it's not raw markup or a checkbox
+            h.append('<td class="asm-onlineform-td">')
+            h.append('<label for="%s">%s %s</label>' % ( fid, f.LABEL, requiredspan ))
+            h.append('</td>')
+            h.append('<td class="asm-onlineform-td">')
         if f.FIELDTYPE == FIELDTYPE_YESNO:
             h.append('<select class="asm-onlineform-yesno" id="%s" name="%s" title="%s"><option>%s</option><option>%s</option></select>' % \
                 ( fid, cname, asm3.utils.nulltostr(f.TOOLTIP), asm3.i18n._("No", l), asm3.i18n._("Yes", l)))
@@ -733,8 +733,15 @@ def insert_onlineformincoming_from_form(dbo, post, remoteip):
         "INNER JOIN onlineformincoming oi ON oi.FormName = o.Name " \
         "WHERE oi.CollationID = ?", [collationid])
     if email is not None and email.strip() != "":
-        # If a submitter email is set, use that to reply to instead
-        replyto = submitteremail 
+        # If a submitter email has been set AND we sent the submitter a copy, 
+        # use the submitter email as reply-to so staff and can reply to their
+        # copy of the message and email the applicant/submitter.
+        # It's important that this is ONLY done if the option is on to send the submitter
+        # a copy because it avoids situations where people use forms for internal process
+        # and want to use an applicant's details but don't want them to see it or accidentally
+        # reply to them about it (prime example, forms related to performing homechecks)
+        replyto = ""
+        if emailsubmitter == 1: replyto = submitteremail 
         if replyto == "": replyto = asm3.configuration.email(dbo)
         asm3.utils.send_email(dbo, replyto, email, "", "", "%s - %s" % (formname, ", ".join(preview)), 
             formdata, "html", images, exceptions=False)
@@ -858,7 +865,7 @@ def attach_animal(dbo, username, collationid):
     has_name = False
     animalid = 0
     for f in fields:
-        if f.FIELDNAME == "animalname": 
+        if f.FIELDNAME == "animalname" or f.FIELDNAME == "reserveanimalname": 
             animalname = f.VALUE
             animalid = get_animal_id_from_field(dbo, animalname)
             has_name = True
