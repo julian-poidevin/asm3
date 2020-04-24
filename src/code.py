@@ -35,7 +35,9 @@ import asm3.medical
 import asm3.mobile
 import asm3.movement
 import asm3.onlineform
+import asm3.paymentprocessor.base
 import asm3.paymentprocessor.paypal
+import asm3.paymentprocessor.stripe
 import asm3.person
 import asm3.publish
 import asm3.publishers.base
@@ -54,7 +56,7 @@ import asm3.wordprocessor
 
 from asm3.i18n import _, BUILD, translate, get_version, get_display_date_format, get_currency_prefix, get_currency_symbol, get_currency_dp, get_currency_radix, get_currency_digit_grouping, get_locales, parse_date, python2display, add_minutes, add_days, subtract_days, subtract_months, first_of_month, last_of_month, monday_of_week, sunday_of_week, first_of_year, last_of_year, now, format_currency
 
-from asm3.sitedefs import BASE_URL, DEPLOYMENT_TYPE, ELECTRONIC_SIGNATURES, EMERGENCY_NOTICE, AKC_REUNITE_BASE_URL, HOMEAGAIN_BASE_URL, LARGE_FILES_CHUNKED, LOCALE, JQUERY_UI_CSS, LEAFLET_CSS, LEAFLET_JS, MULTIPLE_DATABASES, MULTIPLE_DATABASES_PUBLISH_URL, MULTIPLE_DATABASES_PUBLISH_FTP, ADMIN_EMAIL, EMAIL_ERRORS, MADDIES_FUND_TOKEN_URL, MANUAL_HTML_URL, MANUAL_PDF_URL, MANUAL_FAQ_URL, MANUAL_VIDEO_URL, MAP_LINK, MAP_PROVIDER, MAP_PROVIDER_KEY, OSM_MAP_TILES, FOUNDANIMALS_FTP_USER, PETLINK_BASE_URL, PETRESCUE_URL, PETSLOCATED_FTP_USER, QR_IMG_SRC, SAVOURLIFE_URL, SERVICE_URL, SESSION_SECURE_COOKIE, SESSION_DEBUG, SHARE_BUTTON, SMARTTAG_FTP_USER, SMCOM_LOGIN_URL, SMCOM_PAYMENT_LINK
+from asm3.sitedefs import BASE_URL, DEPLOYMENT_TYPE, ELECTRONIC_SIGNATURES, EMERGENCY_NOTICE, AKC_REUNITE_BASE_URL, HOMEAGAIN_BASE_URL, LARGE_FILES_CHUNKED, LOCALE, JQUERY_UI_CSS, LEAFLET_CSS, LEAFLET_JS, MULTIPLE_DATABASES, MULTIPLE_DATABASES_PUBLISH_URL, MULTIPLE_DATABASES_PUBLISH_FTP, ADMIN_EMAIL, EMAIL_ERRORS, MADDIES_FUND_TOKEN_URL, MANUAL_HTML_URL, MANUAL_PDF_URL, MANUAL_FAQ_URL, MANUAL_VIDEO_URL, MAP_LINK, MAP_PROVIDER, MAP_PROVIDER_KEY, OSM_MAP_TILES, FOUNDANIMALS_FTP_USER, PETLINK_BASE_URL, PETRESCUE_URL, PETSLOCATED_FTP_USER, QR_IMG_SRC, SAVOURLIFE_URL, SERVICE_URL, SESSION_SECURE_COOKIE, SESSION_DEBUG, SHARE_BUTTON, SMARTTAG_FTP_USER, SMCOM_LOGIN_URL, SMCOM_PAYMENT_LINK, PAYPAL_VALIDATE_IPN_URL
 
 CACHE_ONE_HOUR = 3600
 CACHE_ONE_DAY = 86400
@@ -196,7 +198,8 @@ class ASMEndpoint(object):
     user_activity = True   # Hitting this endpoint qualifies as user activity
     use_web_input = True   # Unpack values with webpy's web.input()
     login_url = "login"    # The url to go to if not logged in
-    data = None            # Request data posted to this endpoint
+    data = None            # Request data posted to this endpoint as bytes or str if data_encoding is set
+    data_encoding = None   # codec to use for decoding of posted data to str (None to not decode)
 
     def _params(self):
         l = session.locale
@@ -206,6 +209,7 @@ class ASMEndpoint(object):
         try:
             if self.use_web_input: post = asm3.utils.PostedData(web.input(filechooser = {}), l)
             self.data = web.data()
+            if self.data_encoding: self.data = asm3.utils.bytes2str(self.data, encoding=self.data_encoding)
         except Exception as err:
             asm3.al.error("Failed unpacking params: %s" % str(err), "ASMEndpoint._params", session.dbo, sys.exc_info())
         return web.utils.storage( data=self.data, post=post, dbo=session.dbo, locale=l, user=session.user, session=session, \
@@ -1453,6 +1457,7 @@ class animal_donations(JSONEndpoint):
             "name": "animal_donations",
             "donationtypes": asm3.lookups.get_donation_types(dbo),
             "accounts": asm3.financial.get_accounts(dbo, onlybank=True),
+            "logtypes": asm3.lookups.get_log_types(dbo), 
             "paymenttypes": asm3.lookups.get_payment_types(dbo),
             "frequencies": asm3.lookups.get_donation_frequencies(dbo),
             "templates": asm3.template.get_document_templates(dbo)
@@ -2693,6 +2698,7 @@ class donation(JSONEndpoint):
             "name": "donation",
             "donationtypes": asm3.lookups.get_donation_types(dbo),
             "accounts": asm3.financial.get_accounts(dbo, onlybank=True),
+            "logtypes": asm3.lookups.get_log_types(dbo), 
             "paymenttypes": asm3.lookups.get_payment_types(dbo),
             "frequencies": asm3.lookups.get_donation_frequencies(dbo),
             "templates": asm3.template.get_document_templates(dbo),
@@ -2719,7 +2725,14 @@ class donation(JSONEndpoint):
         emailadd = post["to"]
         body = []
         body.append(post["body"])
-        url = "%s?account=%s&method=checkout&payref=%s" % (SERVICE_URL, dbo.database, post["payref"])
+        params = { 
+            "account": dbo.database, 
+            "method": "checkout",
+            "processor": post["processor"],
+            "payref": post["payref"],
+            "title": post["subject"] 
+        }
+        url = "%s?%s" % (SERVICE_URL, asm3.utils.urlencode(params))
         body.append("<p><a href=\"%s\">%s</a></p>" % (url, post["payref"]))
         if post.boolean("addtolog"):
             asm3.log.add_log(dbo, o.user, asm3.log.PERSON, post.integer("person"), post.integer("logtype"), "[%s] %s :: %s" % (emailadd, post["subject"], asm3.utils.html_email_to_plain("\n".join(body))))
@@ -4290,6 +4303,7 @@ class options(JSONEndpoint):
             "donationtypes": asm3.lookups.get_donation_types(dbo),
             "entryreasons": asm3.lookups.get_entryreasons(dbo),
             "incidenttypes": asm3.lookups.get_incident_types(dbo),
+            "haspaypal": PAYPAL_VALIDATE_IPN_URL != "",
             "locales": get_locales(),
             "locations": asm3.lookups.get_internal_locations(dbo),
             "logtypes": asm3.lookups.get_log_types(dbo),
@@ -4315,9 +4329,16 @@ class options(JSONEndpoint):
         self.reload_config()
 
 class pp_paypal(ASMEndpoint):
+    """ 
+    PayPal IPN endpoint. If we return anything but 200 OK with an
+    empty body, PayPal will retry the IPN at a later time. 
+    Note that PayPal send POSTed data encoded as cp1252, so we
+    parse it ourselves using data_param() instead of web.input (hard-coded to utf-8)
+    """
     url = "pp_paypal"
     check_logged_in = False
     use_web_input = False
+    data_encoding = "cp1252"
 
     def post_all(self, o):
         asm3.al.debug(o.data, "code.pp_paypal")
@@ -4325,9 +4346,50 @@ class pp_paypal(ASMEndpoint):
         dbo = asm3.db.get_database(dbname)
         if dbo.database in asm3.db.ERROR_VALUES:
             asm3.al.error("invalid database '%s'" % dbname, "code.pp_paypal")
-            raise asm3.utils.ASMError("invalid database")
-        p = asm3.paymentprocessor.paypal.PayPal(dbo)
-        p.receive(o.data)
+            return
+        try:
+            p = asm3.paymentprocessor.paypal.PayPal(dbo)
+            p.receive(o.data)
+        except asm3.paymentprocessor.base.ProcessorError:
+            # ProcessorError subclasses are thrown when there is a problem with the 
+            # data PayPal have sent, but we do not want them to send it again.
+            # By catching these and returning a 200 empty body, they will not
+            # send it again.
+            return
+
+class pp_stripe(ASMEndpoint):
+    """
+    Stripe webhook endpoint. Like PayPal, a non-200 return code
+    will force a retry.
+    The payload is utf-8 encoded JSON.
+    """
+    url = "pp_stripe"
+    check_logged_in = False
+    use_web_input = False
+    data_encoding = "utf-8"
+
+    def post_all(self, o):
+        asm3.al.debug(o.data, "code.pp_stripe")
+        j = asm3.utils.json_parse(o.data)
+        client_reference_id = j["data"]["object"]["client_reference_id"]
+        try:
+            dbname = client_reference_id[0:client_reference_id.find("-")]
+            dbo = asm3.db.get_database(dbname)
+            if dbo.database in asm3.db.ERROR_VALUES:
+                asm3.al.error("invalid database '%s'" % dbname, "code.pp_stripe")
+                return
+        except Exception as e:
+            asm3.al.error("failed extracting dbname from client_reference_id: %s" % e, "code.pp_stripe")
+            return
+        try:
+            p = asm3.paymentprocessor.stripe.Stripe(dbo)
+            p.receive(o.data)
+        except asm3.paymentprocessor.base.ProcessorError:
+            # ProcessorError subclasses are thrown when there is a problem with the 
+            # data Stripe have sent, but we do not want them to send it again.
+            # By catching these and returning a 200 empty body, they will not
+            # send it again.
+            return
 
 class person(JSONEndpoint):
     url = "person"
@@ -4474,6 +4536,7 @@ class person_donations(JSONEndpoint):
             "name": "person_donations",
             "donationtypes": asm3.lookups.get_donation_types(dbo),
             "accounts": asm3.financial.get_accounts(dbo, onlybank=True),
+            "logtypes": asm3.lookups.get_log_types(dbo), 
             "paymenttypes": asm3.lookups.get_payment_types(dbo),
             "frequencies": asm3.lookups.get_donation_frequencies(dbo),
             "templates": asm3.template.get_document_templates(dbo),

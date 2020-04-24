@@ -343,20 +343,31 @@ def get_onlineform_header(dbo):
     header = asm3.template.get_html_template(dbo, "onlineform")[0]
     if header == "": header = "<!DOCTYPE html>\n" \
         "<html>\n" \
-       "<head>\n" \
-       "<title>$$TITLE$$</title>\n" \
-       "<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />\n" \
-       "<link type=\"text/css\" href=\"https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700\" rel=\"stylesheet\">\n" \
-       "<style>\n" \
-       "body { font-family: \"Lato\",\"proxima-nova\",\"Helvetica Neue\",Arial,sans-serif; }\n" \
-       "input:focus, textarea:focus, select:focus { box-shadow: 0 0 5px #3a87cd; border: 1px solid #3a87cd; }\n" \
-       "input, textarea, select { border: 1px solid #aaa; }\n" \
-       ".asm-onlineform-title, .asm-onlineform-description { text-align: center; }\n" \
-       ".asm-onlineform-table { margin-left: auto; margin-right: auto }\n" \
-       ".asm-onlineform-td:first-child { max-width: 400px; }\n" \
-       ".asm-onlineform-td:nth-child(2) { white-space: nowrap; }\n" \
-       "textarea { width: 300px; height: 150px; }\n" \
-       "input, textarea, select, label { font-size: 110%; }\n" \
+        "<head>\n" \
+        "<title>$$TITLE$$</title>\n" \
+        "<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />\n" \
+        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, minimum-scale=1.0\">\n" \
+        "<style>\n" \
+        "body { font-family: sans-serif; }\n" \
+        "input:focus, textarea:focus, select:focus { box-shadow: 0 0 5px #3a87cd; border: 1px solid #3a87cd; }\n" \
+        ".asm-onlineform-title, .asm-onlineform-description { text-align: center; }\n" \
+        "input, textarea, select { border: 1px solid #aaa; }\n" \
+        "input[type='submit'] { padding: 10px; cursor: pointer; }\n" \
+        "/* phones and smaller devices */\n" \
+        "@media screen and (max-device-width:480px) {\n" \
+        "    * { font-size: 110%; }\n" \
+        "    h2 { font-size: 200%; }\n" \
+        "    .asm-onlineform-table td { display: block; width: 100%; margin-bottom: 20px; }\n" \
+        "    label, input, select, textarea { width: 97%; padding: 5px; }\n" \
+        "    input[type='submit'] { background-color: #2CBBBB; border: 1px solid #27A0A0; color: #fff; padding: 20px; }\n" \
+        "}\n" \
+        "/* full size computers and tablets */\n" \
+        "@media screen and (min-device-width:481px) {\n" \
+        "    .asm-onlineform-td:first-child { max-width: 400px; }\n" \
+        "    .asm-onlineform-table { margin-left: auto; margin-right: auto }\n" \
+        "    textarea { width: 300px; height: 150px; }\n" \
+        "    td, input, textarea, select, label { font-size: 110%; }\n" \
+        "}\n" \
        "</style>\n" \
        "</head>\n" \
        "<body>"
@@ -633,6 +644,7 @@ def insert_onlineformincoming_from_form(dbo, post, remoteip):
             if k.find("_") != -1:
                 fid = asm3.utils.cint(k[k.rfind("_")+1:])
                 fieldname = k[0:k.rfind("_")]
+                v = v.strip() # no reason for whitespace, can't see it in preview and in address fields it makes a mess
                 if fid != 0:
                     fld = dbo.first_row(dbo.query("SELECT FieldType, Label, Tooltip, DisplayIndex FROM onlineformfield WHERE ID = ?", [fid]))
                     if fld is not None:
@@ -642,17 +654,17 @@ def insert_onlineformincoming_from_form(dbo, post, remoteip):
                         tooltip = fld.TOOLTIP
                         # Store a few known fields for access later
                         if fieldname == "emailaddress": 
-                            submitteremail = v.strip()
+                            submitteremail = v
                         if fieldname == "emailsubmissionto":
-                            emailsubmissionto = v.strip()
+                            emailsubmissionto = v
                         if fieldname == "firstname": 
-                            firstname = v.strip()
+                            firstname = v
                             firstnamelabel = label
                         if fieldname == "lastname": 
-                            lastname = v.strip()
+                            lastname = v
                             lastnamelabel = label
                         if fieldname == "animalname" or fieldname == "reserveanimalname":
-                            animalname = v.strip()
+                            animalname = v
                             animalnamelabel = asm3.i18n._("Name", l)
                         # If it's a raw markup field, store the markup as the value
                         if fieldtype == FIELDTYPE_RAWMARKUP:

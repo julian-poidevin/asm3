@@ -1003,6 +1003,9 @@ def owner_name_format(dbo):
 def paypal_email(dbo):
     return cstring(dbo, "PayPalEmail")
 
+def payment_return_url(dbo):
+    return cstring(dbo, "PaymentReturnUrl")
+
 def petrescue_adoptable_in(dbo):
     return cstring(dbo, "PetRescueAdoptableIn")
 
@@ -1218,6 +1221,12 @@ def smtp_server_tls(dbo):
 
 def softrelease_on_shelter(dbo):
     return cboolean(dbo, "SoftReleaseOnShelter", DEFAULTS["SoftReleaseOnShelter"] == "Yes")
+
+def stripe_key(dbo):
+    return cstring(dbo, "StripeKey")
+
+def stripe_secret_key(dbo):
+    return cstring(dbo, "StripeSecretKey")
 
 def use_short_shelter_codes(dbo):
     return cboolean(dbo, "UseShortShelterCodes")

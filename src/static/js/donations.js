@@ -297,6 +297,7 @@ $(function() {
                 row.SHELTERCODE = "";
             }
             if (controller.person) {
+                row.OWNERCODE = controller.person.OWNERCODE;
                 row.OWNERNAME = controller.person.OWNERNAME;
                 row.OWNERADDRESS = controller.person.OWNERADDRESS;
                 row.HOMETELEPHONE = controller.person.HOMETELEPHONE;
@@ -304,6 +305,7 @@ $(function() {
                 row.MOBILETELEPHONE = controller.person.MOBILETELEPHONE;
             }
             else if (donations.lastperson) {
+                row.OWNERCODE = donations.lastperson.OWNERCODE;
                 row.OWNERNAME = donations.lastperson.OWNERNAME;
                 row.OWNERADDRESS = donations.lastperson.OWNERADDRESS;
                 row.HOMETELEPHONE = donations.lastperson.HOMETELEPHONE;
@@ -339,6 +341,10 @@ $(function() {
             if (config.str("PayPalEmail")) {
                 s += '<li id="button-paypal" class="processorbutton asm-menu-item"><a '
                         + '" target="_blank" href="#">' + html.icon("paypal") + ' ' + _("PayPal") + '</a></li>';
+            }
+            if (config.str("StripeKey")) {
+                s += '<li id="button-stripe" class="processorbutton asm-menu-item"><a '
+                        + '" target="_blank" href="#">' + html.icon("stripe") + ' ' + _("Stripe") + '</a></li>';
             }
             s += '</ul></div>';
             s += '<div id="emailform" />';
@@ -445,6 +451,7 @@ $(function() {
                     name: row.OWNERNAME,
                     email: row.EMAILADDRESS,
                     personid: row.OWNERID,
+                    subject: row.COMMENTS || row.DONATIONNAME,
                     templates: controller.templates,
                     logtypes: controller.logtypes,
                     message: _("Please use the link below to pay.")
@@ -454,6 +461,15 @@ $(function() {
                 payment_processor_email_dialog("paypal");
                 return false;
             });
+            $("#button-stripe").click(function() {
+                payment_processor_email_dialog("stripe");
+                return false;
+            });
+            
+            // if there are no available payment processors, hide the button
+            if ($("#button-processor-body li").length == 0) {
+                $("#button-processor").hide();
+            }
 
             // Add click handlers to templates
             $(".templatelink").click(function() {

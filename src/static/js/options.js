@@ -1054,17 +1054,40 @@ $(function() {
             return [
                 '<div id="tab-processors">',
                 html.info(_("ASM can talk to payment processors and request payment from your customers and donors.")),
-                '<p><label for="currencycode">' + _("Request payments in") + '</label>',
-                '<select id="currencycode" class="asm-selectbox" data="CurrencyCode">',
+                '<table>',
+                '<tr><td><label for="currencycode">' + _("Request payments in") + '</label></td>',
+                '<td><select id="currencycode" class="asm-selectbox asm-doubleselectbox" data="CurrencyCode">',
                 html.list_to_options(controller.currencies, "CODE", "DISPLAY"),
-                '</select>',
+                '</select></td><tr>',
+                '<tr><td>',
+                '<label for="paymentreturn">' + _("Redirect to this URL after successful payment") + '</label></td>',
+                '<td><input data="PaymentReturnUrl" id="paymentreturn" type="text" class="asm-textbox asm-doubletextbox" /></td></tr>',
+                '</table>',
+
+                '<div id="paypal-options">',
                 '<hr/>',
-                '<p class="centered"><img src="static/images/ui/logo_paypal_100.png" /></p>',
+                '<p class="centered"><img height="25px" src="static/images/ui/logo_paypal_100.png" /></p>',
                 '<table>',
                 '<tr><td><label for="paypalemail">' + _("PayPal Business Email") + '</label></td>',
                 '<td><input data="PayPalEmail" id="paypalemail" type="text" class="asm-textbox asm-doubletextbox" /></td></tr>',
                 '</table>',
+                '</div>',
+
+                '<div id="stripe-options">',
                 '<hr/>',
+                '<p class="centered"><img height="25px" src="static/images/ui/logo_stripe_103.png" /></p>',
+                '<table>',
+                '<tr><td><label for="stripekey">' + _("Stripe Key") + '</label></td>',
+                '<td><input data="StripeKey" id="stripekey" type="text" class="asm-textbox asm-doubletextbox" /></td></tr>',
+                '<tr><td><label for="stripesecretkey">' + _("Stripe Secret Key") + '</label></td>',
+                '<td><input data="StripeSecretKey" id="stripesecretkey" type="text" class="asm-textbox asm-doubletextbox" /></td></tr>',
+                '</table>',
+                '<p class="centered">',
+                    _("In the Stripe dashboard, create a webhook to send 'checkout.session.completed' events to {0}")
+                    .replace("{0}", "<br/><b>" + asm.baseurl + "/pp_stripe" + "</b>"),
+                '</p>',
+                '</div>',
+
                 '</div>'
             ].join("\n");
         },
@@ -1130,6 +1153,7 @@ $(function() {
                 '<option value="locationspecies">' + _("Location and Species") + '</option>',
                 '<option value="locationtype">' + _("Location and Type") + '</option>',
                 '<option value="locationunit">' + _("Location and Unit") + '</option>',
+                '<option value="locationnv">' + _("Location (No Virtual)") + '</option>',
                 '<option value="name">' + _("Name") + '</option>',
                 '<option value="pickuplocation">' + _("Pickup Location") + '</option>',
                 '<option value="retailer">' + _("Retailer") + '</option>',
@@ -1371,6 +1395,11 @@ $(function() {
             // Hide options not applicable for some locales
             if (asm.locale != "en") {
                 $(".us").hide();
+            }
+
+            // Hide other non-relevant options
+            if (!controller.haspaypal) {
+                $("#paypal-options").hide();
             }
 
             validate.bind_dirty();

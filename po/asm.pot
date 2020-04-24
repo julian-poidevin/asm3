@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ASM3\n"
 "Report-Msgid-Bugs-To: robin@sheltermanager.com\n"
-"POT-Creation-Date: 2020-04-21 16:27+0000\n"
+"POT-Creation-Date: 2020-04-24 12:57+0000\n"
 "Last-Translator: Robin Rawson-Tetley <robin@sheltermanager.com>\n"
 "Language-Team: en <robin@sheltermanager.com>\n"
 "Language: en\n"
@@ -5887,6 +5887,12 @@ msgstr ""
 msgid "In SubTotal"
 msgstr ""
 
+#: options.js
+msgid ""
+"In the Stripe dashboard, create a webhook to send "
+"'checkout.session.completed' events to {0}"
+msgstr ""
+
 #: publish_options.js
 msgid "In the last month"
 msgstr ""
@@ -6687,6 +6693,10 @@ msgstr ""
 #: animal_bulk.js test.js animal.js options.js shelterview.js
 #: header_edit_header.js
 msgid "Location"
+msgstr ""
+
+#: options.js shelterview.js
+msgid "Location (No Virtual)"
 msgstr ""
 
 #: users.js
@@ -9125,6 +9135,10 @@ msgstr ""
 msgid "Redirect to URL after POST"
 msgstr ""
 
+#: options.js
+msgid "Redirect to this URL after successful payment"
+msgstr ""
+
 #: lostfound.py transport.js
 msgid "Reference"
 msgstr ""
@@ -10808,6 +10822,18 @@ msgstr ""
 
 #: dbupdate.py
 msgid "Stray"
+msgstr ""
+
+#: dbupdate.py donations.js
+msgid "Stripe"
+msgstr ""
+
+#: options.js
+msgid "Stripe Key"
+msgstr ""
+
+#: options.js
+msgid "Stripe Secret Key"
 msgstr ""
 
 #: common.js

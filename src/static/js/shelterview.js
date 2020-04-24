@@ -315,6 +315,10 @@ $(function() {
                     lastgrp2 = "";
                     // Produce an appropriate link based on the group field
                     grplink = "#";
+                    if (groupfield == "SHELTERLOCATIONNAME") {
+                        grplink = "animal_find_results?logicallocation=onshelter&shelterlocation=" + a.SHELTERLOCATION;
+                        locationsused.push(a.SHELTERLOCATION);
+                    }
                     if (groupfield == "DISPLAYLOCATIONNAME") {
                         grplink = "animal_find_results?logicallocation=onshelter&shelterlocation=" + a.SHELTERLOCATION;
                         locationsused.push(a.SHELTERLOCATION);
@@ -390,7 +394,7 @@ $(function() {
             }
             // If we're sorting on location, find any locations that were unused
             // and output a section for them - unless they're retired
-            if (groupfield == "DISPLAYLOCATIONNAME" && config.bool("ShelterViewShowEmpty")) {
+            if (config.bool("ShelterViewShowEmpty") && (groupfield == "DISPLAYLOCATIONNAME" || groupfield == "SHELTERLOCATIONNAME")) {
                 $.each(controller.locations, function(i, v) {
                     if ($.inArray(v.ID, locationsused) == -1 && !v.ISRETIRED) {
                         var loclink = "animal_find_results?logicallocation=onshelter&shelterlocation=" + v.ID;
@@ -429,6 +433,7 @@ $(function() {
                                 $.each(controller.animals, function(i, a) {
                                     if (a.ID == animalid) {
                                         a.SHELTERLOCATION = locationid;
+                                        a.SHELTERLOCATIONNAME = locationname;
                                         a.DISPLAYLOCATIONNAME = locationname;
                                         return false;
                                     }
@@ -492,6 +497,9 @@ $(function() {
             }
             else if (viewmode == "location") {
                 this.render_view("DISPLAYLOCATIONNAME", "", "DISPLAYLOCATIONNAME,ANIMALNAME", true, false);
+            }
+            else if (viewmode == "locationnv") {
+                this.render_view("SHELTERLOCATIONNAME", "", "SHELTERLOCATIONNAME,ANIMALNAME", true, false);
             }
             else if (viewmode == "locationbreed") {
                 this.render_view("DISPLAYLOCATIONNAME", "BREEDNAME", "DISPLAYLOCATIONNAME,BREEDNAME,ANIMALNAME", true, false);
@@ -587,6 +595,7 @@ $(function() {
             h.push('<option value="locationspecies">' + _("Location and Species") + '</option>');
             h.push('<option value="locationtype">' + _("Location and Type") + '</option>');
             h.push('<option value="locationunit">' + _("Location and Unit") + '</option>');
+            h.push('<option value="locationnv">' + _("Location (No Virtual)") + '</option>');
             h.push('<option value="name">' + _("Name") + '</option>');
             h.push('<option value="pickuplocation">' + _("Pickup Location") + '</option>');
             h.push('<option value="retailer">' + _("Retailer") + '</option>');
