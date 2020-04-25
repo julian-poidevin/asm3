@@ -38,7 +38,7 @@ class PayPal(PaymentProcessor):
             paymenttypes.append(r.DONATIONNAME)
 
         if item_description == "": item_description = ", ".join(paymenttypes)
-        if return_url == "": return_url = "%sstatic/pages/payment_success.html" % BASE_URL
+        if return_url == "": return_url = "%s/static/pages/payment_success.html" % BASE_URL
 
         d = {
             "cmd":              "_xclick",
@@ -50,7 +50,7 @@ class PayPal(PaymentProcessor):
             "custom":           self.dbo.database,
             "tax_rate":         vatrate,
             "tax":              "%0.2f" % (totalvat / 100.0),
-            "notify_url":       BASE_URL + "pp_paypal", # callback url
+            "notify_url":       BASE_URL + "/pp_paypal", # callback url
             "button_subtype":   "services",
             "no_note":          0,
             "cn":               "",
