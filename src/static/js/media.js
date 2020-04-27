@@ -203,7 +203,7 @@ $(function() {
                 { id: "web", icon: "web", enabled: "one", perm: "cam", tooltip: _("Make this the default image when viewing this record and publishing to the web") },
                 { id: "doc", icon: "document", enabled: "one", perm: "cam", tooltip: _("Make this the default image when creating documents") },
                 { id: "video", icon: "video", enabled: "one", perm: "cam", tooltip: _("Make this the default video link when publishing to the web") },
-                { type: "raw", markup: '<div style="min-height: 40px" class="asm-mediadroptarget"><p>' + _("Drop files here...") + '</p></div>',
+                { type: "raw", markup: '<div class="asm-mediadroptarget"><p>' + _("Drop files here...") + '</p></div>',
                     hideif: function() { return !Modernizr.filereader || !Modernizr.todataurljpeg || asm.mobileapp; }}
             ];
 
@@ -809,6 +809,7 @@ $(function() {
                     name: defaultname,
                     email: defaultemail,
                     subject: tableform.table_selected_row(media.table).MEDIANOTES,
+                    animalid: (controller.animal && controller.animal.ID),
                     personid: (controller.person && controller.person.ID),
                     templates: controller.templates,
                     logtypes: controller.logtypes
@@ -824,6 +825,7 @@ $(function() {
                     name: defaultname,
                     email: defaultemail,
                     subject: tableform.table_selected_row(media.table).MEDIANOTES,
+                    animalid: (controller.animal && controller.animal.ID),
                     personid: (controller.person && controller.person.ID),
                     templates: controller.templates,
                     logtypes: controller.logtypes
@@ -842,6 +844,7 @@ $(function() {
                     name: defaultname,
                     email: defaultemail,
                     subject: _("Document signing request"),
+                    animalid: (controller.animal && controller.animal.ID),
                     personid: (controller.person && controller.person.ID),
                     templates: controller.templates,
                     logtypes: controller.logtypes,
