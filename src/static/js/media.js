@@ -5,7 +5,6 @@
 $(function() {
 
     var media = {
-        thumbnail_size: 50, // Size of table thumbnails in px
         retain_for_years: [
             "0|" + _("Indefinitely"),
             "1|" + _("1 year"),
@@ -26,6 +25,7 @@ $(function() {
                 edit_perm: 'cam',
                 close_on_ok: true,
                 columns: 1,
+                width: 550,
                 fields: [
                     { json_field: "MEDIANOTES", post_field: "medianotes", label: _("Notes"), type: "textarea" },
                     { json_field: "RETAINUNTIL", post_field: "retainuntil", label: _("Retain Until"), type: "date",
@@ -36,7 +36,7 @@ $(function() {
             var table = {
                 rows: controller.media,
                 idcolumn: "ID",
-                truncatelink: 70, // Only use first 70 chars of MEDIANOTES for edit link
+                truncatelink: 50, // Only use first 50 chars of MEDIANOTES for edit link
                 edit: function(row) {
                     tableform.fields_populate_from_json(dialog.fields, row);
                     tableform.dialog_show_edit(dialog, row)
@@ -105,7 +105,7 @@ $(function() {
                     { field: "PREVIEW", display: "", formatter: function(m) {
                         var h = [ '<div class="asm-media-thumb">' ];
                         if (m.MEDIATYPE == 1 || m.MEDIATYPE == 2) {
-                            h.push('<a style="float: left" target="_blank" href="' + m.MEDIANAME + '">');
+                            h.push('<a href="' + m.MEDIANAME + '">');
                             var linkimage = "static/images/ui/file-video.png";
                             if (m.MEDIATYPE == 1) {
                                 linkimage = "static/images/ui/document-media.png";
@@ -118,23 +118,23 @@ $(function() {
                                     }
                                 }
                             }
-                            h.push('<img class="asm-thumbnail thumbnailshadow" src="' + linkimage + '" height="' + media.thumbnail_size + 'px" /></a>');
+                            h.push('<img class="asm-thumbnail thumbnailshadow" src="' + linkimage + '" /></a>');
                         }
                         else if (m.MEDIAMIMETYPE == "image/jpeg") {
-                            h.push('<a style="float: left" target="_blank" href="image?db=' + asm.user + '&mode=media&id=' + m.ID + '&date=' + encodeURIComponent(m.DATE) + '">');
-                            h.push('<img class="asm-thumbnail thumbnailshadow" src="image?db=' + asm.user + '&mode=media&id=' + m.ID + '&date=' + encodeURIComponent(m.DATE) + '" height="' + media.thumbnail_size + 'px" /></a>');
+                            h.push('<a href="image?db=' + asm.user + '&mode=media&id=' + m.ID + '&date=' + encodeURIComponent(m.DATE) + '">');
+                            h.push('<img class="asm-thumbnail thumbnailshadow" src="image?db=' + asm.user + '&mode=media&id=' + m.ID + '&date=' + encodeURIComponent(m.DATE) + '" /></a>');
                         }
                         else if (m.MEDIAMIMETYPE == "text/html") {
-                            h.push('<a style="float: left" target="_blank" href="document_media_edit?id=' + m.ID + '&redirecturl=' + controller.name + '?id=' + m.LINKID + '"> ');
-                            h.push('<img class="asm-thumbnail thumbnailshadow" src="static/images/ui/document-media.png" height="' + media.thumbnail_size + 'px" /></a>');
+                            h.push('<a href="document_media_edit?id=' + m.ID + '&redirecturl=' + controller.name + '?id=' + m.LINKID + '"> ');
+                            h.push('<img class="asm-thumbnail thumbnailshadow" src="static/images/ui/document-media.png" /></a>');
                         }
                         else if (m.MEDIAMIMETYPE == "application/pdf") {
-                            h.push('<a style="float: left" target="_blank" href="media?id=' + m.ID + '">');
-                            h.push('<img class="asm-thumbnail thumbnailshadow" src="static/images/ui/pdf-media.png" height="' + media.thumbnail_size + 'px" /></a>');
+                            h.push('<a href="media?id=' + m.ID + '">');
+                            h.push('<img class="asm-thumbnail thumbnailshadow" src="static/images/ui/pdf-media.png" /></a>');
                         }
                         else {
-                            h.push('<a style="float: left" target="_blank" href="media?id=' + m.ID + '">');
-                            h.push('<img class="asm-thumbnail thumbnailshadow" src="static/images/ui/file-media.png" height="' + media.thumbnail_size + 'px" /></a>');
+                            h.push('<a href="media?id=' + m.ID + '">');
+                            h.push('<img class="asm-thumbnail thumbnailshadow" src="static/images/ui/file-media.png" /></a>');
                         }
                         h.push('</div>');
                         var mod_out = function(icon, text) {
@@ -214,11 +214,6 @@ $(function() {
         },
 
         render: function() {
-            // Set a dynamic thumbnail size based on number of elements
-            if (controller.media.length >= 0) { this.thumbnail_size = 100; }
-            if (controller.media.length > 10) { this.thumbnail_size = 70; }
-            if (controller.media.length > 20) { this.thumbnail_size = 50; }
-            if (controller.media.length > 30) { this.thumbnail_size = 30; }
             this.model();
             var h = [
                 tableform.dialog_render(this.dialog),
@@ -620,7 +615,11 @@ $(function() {
 
 
             var addbuttons = { };
-            addbuttons[_("Attach")] = media.post_file;
+            addbuttons[_("Attach")] = {
+                text: _("Attach"),
+                "class": "asm-dialog-actionbutton",
+                click: media.post_file
+            };
             addbuttons[_("Cancel")] = function() {
                 $("#dialog-add").dialog("close");
             };
@@ -636,21 +635,25 @@ $(function() {
             });
 
             var addlinkbuttons = { };
-            addlinkbuttons[_("Attach")] = function() {
-                if (!validate.notblank([ "linktarget" ])) { return; }
-                $("#dialog-addlink").disable_dialog_buttons();
-                var formdata = "mode=createlink&linkid=" + controller.linkid + 
-                    "&linktypeid=" + controller.linktypeid + 
-                    "&controller=" + controller.name + "&" +
-                    $("#linktype, #linktarget, #linkcomments").toPOST();
-                common.ajax_post("media", formdata)
-                    .then(function() {
-                        $("#dialog-addlink").dialog("close").enable_dialog_buttons();
-                        common.route_reload();
-                    })
-                    .fail(function() {
-                        $("#dialog-addlink").dialog("close").enable_dialog_buttons(); 
-                    });
+            addlinkbuttons[_("Attach")] = {
+                text: _("Attach"),
+                "class": "asm-dialog-actionbutton",
+                click: function() {
+                    if (!validate.notblank([ "linktarget" ])) { return; }
+                    $("#dialog-addlink").disable_dialog_buttons();
+                    var formdata = "mode=createlink&linkid=" + controller.linkid + 
+                        "&linktypeid=" + controller.linktypeid + 
+                        "&controller=" + controller.name + "&" +
+                        $("#linktype, #linktarget, #linkcomments").toPOST();
+                    common.ajax_post("media", formdata)
+                        .then(function() {
+                            $("#dialog-addlink").dialog("close").enable_dialog_buttons();
+                            common.route_reload();
+                        })
+                        .fail(function() {
+                            $("#dialog-addlink").dialog("close").enable_dialog_buttons(); 
+                        });
+                }
             };
             addlinkbuttons[_("Cancel")] = function() {
                 $("#dialog-addlink").dialog("close");
@@ -889,6 +892,21 @@ $(function() {
         sync: function() {
 
             if (controller.newmedia) { media.new_media(); }
+
+            // Resize the thumbnails based on the number of media records
+            // to fit more on screen
+            var thumbnail_size = 85;
+            if (controller.media.length >= 0) { thumbnail_size = 85; }
+            if (controller.media.length > 10) { thumbnail_size = 70; }
+            if (controller.media.length > 20) { thumbnail_size = 55; }
+            if (controller.media.length > 30) { thumbnail_size = 30; }
+            $(".asm-media-thumb img").css({
+                "min-width": thumbnail_size,
+                "min-height": thumbnail_size,
+                "width": thumbnail_size,
+                "height": thumbnail_size,
+                "object-fit": "contain"
+            });
 
             // Check if we have pictures but no preferred set and choose one if we don't
             media.check_preferred_images();
