@@ -702,6 +702,7 @@ $(function() {
                 else if (p == "foundanimals") { t = html.icon("microchip") + " Microchip registered with FoundAnimals"; }
 
                 else if (p == "shareweb") { t = html.icon("web") + " " + _("Shared weblink"); }
+                else if (p == "sharepic") { t = html.icon("media") + " " + _("Shared photo"); }
                 else if (p == "facebook") { t = html.icon("facebook") + " Shared on Facebook"; }
                 else if (p == "twitter") { t = html.icon("twitter") + " Shared on Twitter"; }
                 else if (p == "gplus") { t = html.icon("gplus") + " Shared on Google+"; }
@@ -774,6 +775,8 @@ $(function() {
                 '<ul class="asm-menu-list">',
                     '<li id="button-shareweb" class="sharebutton asm-menu-item"><a '
                         + '" target="_blank" href="#">' + html.icon("web") + ' ' + _("Link to this animal") + '</a></li>',
+                    '<li id="button-sharepic" class="sharebutton asm-menu-item"><a '
+                        + '" target="_blank" href="#">' + html.icon("media") + ' ' + _("Link to a photo of this animal") + '</a></li>',
                     '<li id="button-shareemail" class="sharebutton asm-menu-item"><a '
                         + '" target="_blank" href="#">' + html.icon("email") + ' ' + _("Email") + '</a></li>',
                     '<li id="button-social" class="sharebutton asm-menu-category">' + _("Social") + ' </li>',
@@ -1158,7 +1161,7 @@ $(function() {
             validate.reset();
 
             // name
-            if ($.trim($("#animalname").val()) == "") {
+            if (common.trim($("#animalname").val()) == "") {
                 header.show_error(_("Name cannot be blank"));
                 $("#asm-details-accordion").accordion("option", "active", 0);
                 validate.highlight("animalname");
@@ -1166,7 +1169,7 @@ $(function() {
             }
 
             // date brought in
-            if ($.trim($("#datebroughtin").val()) == "") {
+            if (common.trim($("#datebroughtin").val()) == "") {
                 header.show_error(_("Date brought in cannot be blank"));
                 $("#asm-details-accordion").accordion("option", "active", 3);
                 validate.highlight("datebroughtin");
@@ -1174,7 +1177,7 @@ $(function() {
             }
 
             // date of birth
-            if ($.trim($("#dateofbirth").val()) == "") {
+            if (common.trim($("#dateofbirth").val()) == "") {
                 header.show_error(_("Date of birth cannot be blank"));
                 $("#asm-details-accordion").accordion("option", "active", 0);
                 validate.highlight("dateofbirth");
@@ -1182,7 +1185,7 @@ $(function() {
             }
 
             // shelter code
-            if ($.trim($("#sheltercode").val()) == "") {
+            if (common.trim($("#sheltercode").val()) == "") {
                 header.show_error(_("Shelter code cannot be blank"));
                 $("#asm-details-accordion").accordion("option", "active", 0);
                 validate.highlight("sheltercode");
@@ -1255,8 +1258,9 @@ $(function() {
                 common.ajax_post("animal", "mode=shared&id=" + controller.animal.ID + "&service=" + service);
             });
 
-            // Web and email
+            // Web, picture and email
             $("#button-shareweb a").attr("href", share_url);
+            $("#button-sharepic a").attr("href", share_image);
             $("#button-shareemail a").attr("href", "mailto:?body=" + enc_share_url);
 
             // Facebook

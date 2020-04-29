@@ -50,6 +50,7 @@ $(function() {
                         .then(function() {
                             tableform.table_update(table);
                             tableform.dialog_enable_buttons();
+                            if (media.icon_mode_active) { media.mode_icon(); } else { media.mode_table(); }
                         })
                         .fail(function() {
                             tableform.dialog_enable_buttons();
