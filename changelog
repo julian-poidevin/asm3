@@ -1,6 +1,12 @@
 44
 ================
 
+30/04/20 Ability to view old litter records #807
+30/04/20 Email button on animal records #809
+30/04/20 Email documents from document repository #687
+30/04/20 Leaving the incoming forms screen deletes processed forms #810
+30/04/20 make format_date and format_time consistent with each other #808
+30/04/20 Omit seconds for word processor clinic output (Julian Poidevin) #808
 29/04/20 Fix display after reloading media table on edit
 29/04/20 Option to share picture from share menu
 29/04/20 Fix introduced bug in saving currency fields

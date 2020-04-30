@@ -6,8 +6,8 @@ import time
 # flake8: noqa - we have a lot of locales and this is convenient
 from asm3.locales import *
 
-VERSION = "44u [Wed 29 Apr 14:19:43 BST 2020]"
-BUILD = "04291419"
+VERSION = "44u [Thu 30 Apr 13:22:51 BST 2020]"
+BUILD = "04301322"
 
 DMY = ( "%d/%m/%Y", "%d/%m/%y" )
 HDMY = ( "%d-%m-%Y", "%d-%m-%y" )
@@ -354,9 +354,9 @@ def format_currency_no_symbol(locale, value):
     """
     return format_currency(locale, value, includeSymbol = False)
 
-def format_time(d):
+def format_time(d, timeformat="%H:%M:%S"):
     if d is None: return ""
-    return time.strftime("%H:%M:%S", d.timetuple())
+    return time.strftime(timeformat, d.timetuple())
 
 def format_time_now(offset = 0.0):
     return format_time(now(offset))
@@ -391,7 +391,7 @@ def python2unix(d):
     except:
         return 0
 
-def format_date(dateformat, d):
+def format_date(d, dateformat="%Y-%m-%d"):
     """
     Formats a python date to the format given (strftime rules)
     """
