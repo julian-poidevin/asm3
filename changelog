@@ -1,6 +1,12 @@
 44
 ================
 
+08/05/20 Stack emails vertically in edit online forms to help layout
+07/05/20 Online Form: Skip Logic/Show If functionality #294
+07/05/20 Fix introduced bug in person docs with no animal on reserve
+06/05/20 Make animals optional for reservations #785
+06/05/20 Fix bug in nb locale when issuing update queries
+06/05/20 Fix sorting of notes containing dates in media table view
 05/05/20 Fix writing of insert SQL to handle apostrophes correctly
 05/05/20 PetLink will not accept more than 1 email address, strip/split if found
 05/05/20 If minimap editing is on, allow right click to move pin #815
