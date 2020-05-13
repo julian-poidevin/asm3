@@ -202,6 +202,7 @@ def get_satellite_counts(dbo, personid):
         "(SELECT COUNT(*) FROM ownertraploan ot WHERE ot.OwnerID = o.ID) AS traploan, " \
         "(SELECT COUNT(*) FROM ownervoucher ov WHERE ov.OwnerID = o.ID) AS vouchers, " \
         "((SELECT COUNT(*) FROM animal WHERE AdoptionCoordinatorID = o.ID OR BroughtInByOwnerID = o.ID OR OriginalOwnerID = o.ID OR CurrentVetID = o.ID OR OwnersVetID = o.ID OR NeuteredByVetID = o.ID) + " \
+        "(SELECT COUNT(*) FROM animal INNER JOIN adoption ON adoption.ID = animal.ActiveMovementID WHERE animal.OwnerID = o.ID AND animal.OwnerID <> adoption.OwnerID) + " \
         "(SELECT COUNT(*) FROM adoption WHERE ReturnedByOwnerID = o.ID) + " \
         "(SELECT COUNT(*) FROM animalwaitinglist WHERE OwnerID = o.ID) + " \
         "(SELECT COUNT(*) FROM animalfound WHERE OwnerID = o.ID) + " \
@@ -257,19 +258,20 @@ def get_links(dbo, pid):
         "WHEN a.Archived = 1 AND a.DeceasedDate Is Not Null AND a.ActiveMovementID = 0 THEN dr.ReasonName " \
         "WHEN a.Archived = 1 AND a.DeceasedDate Is Null AND a.ActiveMovementID <> 0 THEN mt.MovementType " \
         "ELSE il.LocationName END", "')'"))
-    # Current Owner
+    # Current Owner (shown for non-shelter matches or where owner <> current movement person)
     sql = "SELECT 'CO' AS TYPE, " \
         "'' AS TYPEDISPLAY, a.LastChangedDate AS DDATE, a.ID AS LINKID, " \
         "%s AS LINKDISPLAY, " \
         "%s AS FIELD2, " \
         "CASE WHEN a.DeceasedDate Is Not Null THEN 'D' ELSE '' END AS DMOD " \
         "FROM animal a " \
+        "LEFT OUTER JOIN adoption ad ON ad.ID = a.ActiveMovementID " \
         "LEFT OUTER JOIN lksmovementtype mt ON mt.ID = a.ActiveMovementType " \
         "INNER JOIN species s ON s.ID = a.SpeciesID " \
         "LEFT OUTER JOIN internallocation il ON il.ID = a.ShelterLocation " \
         "LEFT OUTER JOIN deathreason dr ON dr.ID = a.PTSReasonID " \
-        "WHERE a.OwnerID = %d " % (linkdisplay, animalextra, int(pid))
-    # Original Owner
+        "WHERE a.OwnerID = %d AND (a.NonShelterAnimal=1 OR a.OwnerID <> ad.OwnerID) " % (linkdisplay, animalextra, int(pid))
+    # Original Owner (shelter animals only)
     sql += "UNION SELECT 'OO' AS TYPE, " \
         "'' AS TYPEDISPLAY, a.DateBroughtIn AS DDATE, a.ID AS LINKID, " \
         "%s AS LINKDISPLAY, " \
@@ -280,7 +282,7 @@ def get_links(dbo, pid):
         "INNER JOIN species s ON s.ID = a.SpeciesID " \
         "LEFT OUTER JOIN internallocation il ON il.ID = a.ShelterLocation " \
         "LEFT OUTER JOIN deathreason dr ON dr.ID = a.PTSReasonID " \
-        "WHERE OriginalOwnerID = %d " % (linkdisplay, animalextra, int(pid))
+        "WHERE NonShelterAnimal = 0 AND OriginalOwnerID = %d " % (linkdisplay, animalextra, int(pid))
     # Brought In By
     sql += "UNION SELECT 'BI' AS TYPE, " \
         "'' AS TYPEDISPLAY, a.DateBroughtIn AS DDATE, a.ID AS LINKID, " \
@@ -1014,11 +1016,19 @@ def merge_person(dbo, username, personid, mergepersonid):
     if personid == 0 or mergepersonid == 0:
         raise asm3.utils.ASMValidationError("Internal error: Cannot merge ID 0")
 
-    def reparent(table, field, linktypefield = "", linktype = -1):
-        if linktype >= 0:
-            dbo.execute("UPDATE %s SET %s = %d WHERE %s = %d AND %s = %d" % (table, field, personid, field, mergepersonid, linktypefield, linktype))
-        else:
-            dbo.execute("UPDATE %s SET %s = %d WHERE %s = %d" % (table, field, personid, field, mergepersonid))
+    def reparent(table, field, linktypefield = "", linktype = -1, lastchanged = True):
+        try:
+            if linktype >= 0:
+                dbo.update(table, "%s=%s AND %s=%s" % (field, mergepersonid, linktypefield, linktype), 
+                    { field: personid }, username, 
+                    setLastChanged=lastchanged, setRecordVersion=lastchanged)
+            else:
+                dbo.update(table, "%s=%s" % (field, mergepersonid), 
+                    { field: personid }, username, setLastChanged=lastchanged, setRecordVersion=lastchanged)
+        except Exception as err:
+            asm3.al.error("error reparenting: %s -> %s, table=%s, field=%s, linktypefield=%s, linktype=%s, error=%s" % \
+                (mergepersonid, personid, table, field, linktypefield, linktype, err), "person.merge_person", dbo)
+
 
     # Merge any contact info
     mp = get_person(dbo, mergepersonid)
@@ -1068,12 +1078,19 @@ def merge_person(dbo, username, personid, mergepersonid):
     reparent("ownerdonation", "OwnerID")
     reparent("ownerinvestigation", "OwnerID")
     reparent("ownerlicence", "OwnerID")
+    reparent("ownerlookingfor", "OwnerID", lastchanged=False)
     reparent("ownertraploan", "OwnerID")
     reparent("ownervoucher", "OwnerID")
     reparent("users", "OwnerID")
-    reparent("media", "LinkID", "LinkTypeID", asm3.media.PERSON)
+    reparent("media", "LinkID", "LinkTypeID", asm3.media.PERSON, lastchanged=False)
     reparent("diary", "LinkID", "LinkType", asm3.diary.PERSON)
     reparent("log", "LinkID", "LinkType", asm3.log.PERSON)
+
+    # Reparent the audit records for the reparented records in the audit log
+    # by switching ParentLinks to the new ID.
+    dbo.execute("UPDATE audittrail SET ParentLinks = %s WHERE ParentLinks LIKE '%%owner=%s %%'" % \
+        ( dbo.sql_replace("ParentLinks", "owner=%s " % mergepersonid, "owner=%s " % personid), mergepersonid))
+
     dbo.delete("owner", mergepersonid, username)
     asm3.audit.move(dbo, username, "owner", personid, "", "Merged owner %d -> %d" % (mergepersonid, personid))
 
