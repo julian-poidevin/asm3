@@ -56,6 +56,15 @@ ASM contains a full double entry accounting package. The options here are:
   screens allowing you to calculate the taxable value (assumes your amount is
   gross and inclusive of tax/VAT/GST).
 
+* When calculating sales tax, assume the payment amount is net and add it:
+  Not everyone charges for items that are inclusive of tax and don't have the 
+  full amount to hand. With this option on, when the system calculates the sales
+  tax/VAT/GST on your payment amount, it will calculate it as if the amount was
+  exclusive of tax and then add it to the amount so that it becomes a gross
+  amount, inclusive of tax. Eg: $50 at 20% will produce $10 tax and the amount
+  will become $60 with this option on. With it off, tax will be calculated
+  as $8.33 for $50.
+
 * When receiving multiple payments, allow the due and received dates to be set:
   If this option is on, due and received date columns will be shown when taking
   payments from the Move screens and Receive a Payment screen.
@@ -78,6 +87,12 @@ ASM contains a full double entry accounting package. The options here are:
   payment transaction, it will use the payment type to find the income
   account to use. The destination account here denotes where the money will be
   moved to. If you do not set one, ASM will use the first bank account on file. 
+
+* Income account for sales tax: If you are creating matching transactions from
+  payment records and there is a tax/VAT/GST value present, the system will
+  write a transaction to deposit the tax into the target bank account from the
+  income account you nominate here, giving you an easy way to track your
+  tax burden while keeping your bank balances correct.
 
 * Expense account for transaction fees: If you are creating matching
   transactions from payment records and there is a fee present, the system will
