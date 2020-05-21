@@ -193,6 +193,22 @@ const common = {
     },
 
     /**
+     * Copies 'text' to the clipboard.
+     * Uses a temporarily created textarea. Note that this has
+     * to be called by code spawned from a click event so that
+     * a user interaction started it.
+     */
+    copy_to_clipboard: function(text) {
+        var input = document.createElement('textarea');
+        input.innerHTML = text;
+        document.body.appendChild(input);
+        input.select();
+        var result = document.execCommand('copy');
+        document.body.removeChild(input);
+        return result;
+    },
+
+    /**
      * Returns true if v is an array
      */
     is_array: function(v) {
@@ -217,13 +233,13 @@ const common = {
     },
 
     browser_is: {
-        ios:     navigator.userAgent.match(/iPod|iPad/i),
-        chrome:  navigator.userAgent.match(/Chrome/i),
-        safari:  navigator.userAgent.match(/Safari/i),
-        opera:   navigator.userAgent.match(/Opera/i),
-        ie610:   navigator.userAgent.match(/MSIE/i),
-        ie11:    navigator.userAgent.match(/rv:11.0/),
-        mobile:  navigator.userAgent.match(/Android|iPhone|iPod|BlackBerry|Windows Phone|webOS/i)
+        ios:     navigator.userAgent.match(/iPod|iPad/i) != null,
+        chrome:  navigator.userAgent.match(/Chrome/i) != null,
+        safari:  navigator.userAgent.match(/Safari/i) != null,
+        opera:   navigator.userAgent.match(/Opera/i) != null,
+        ie610:   navigator.userAgent.match(/MSIE/i) != null,
+        ie11:    navigator.userAgent.match(/rv:11.0/) != null,
+        mobile:  navigator.userAgent.match(/Android|iPhone|iPod|BlackBerry|Windows Phone|webOS/i) != null
     },
 
     /**
@@ -2030,49 +2046,55 @@ const html = {
         return "<span class=\"asm-icon asm-icon-" + name + "\"" + extra + "></span>";
     },
 
+
     /**
-     * Returns an error bar, with error icon and the text supplied
+     * Returns a text bar containing s with options o
+     * id: The containing div id
+     * display: (no default, css display parameter of container)
+     * state: highlight (default) | error 
+     * icon: info (default, jquery ui icon)
+     * padding: (default 5px)
+     * margintop: (default not set)
      */
-    error: function(s, containerid) {
+    textbar: function(s, o) {
+        let containerid = "", display = "", state = "highlight", icon = "info", padding = "", margintop = "";
+        if (!o) { o = {}; }
+        if (!o.padding) { o.padding = "5px"; }
+        if (o.id) { containerid = 'id="' + o.id + '"'; }
+        if (o.display) { display = "display: " + o.display + ";"; }
+        if (o.state) { state = o.state; }
+        if (o.icon) { icon = o.icon; }
+        if (o.padding) { padding = "padding: " + o.padding + ";"; }
+        if (o.margintop) { margintop = "margin-top: " + o.margintop + ";"; }
         return [
-            "<div class=\"ui-widget\" ",
-            containerid ? "id=\"" + containerid + "\" " : "",
-            ">",
-            "<div class=\"ui-state-error ui-corner-all\"><p>",
-            "<span class=\"ui-icon ui-icon-alert\"></span>",
+            "<div class=\"ui-widget\" " + containerid + " style=\"" + margintop + "\">",
+            "<div class=\"ui-state-" + state + " ui-corner-all\" style=\"" + padding + "\"><p>",
+            "<span class=\"ui-icon ui-icon-" + icon + "\"></span>",
             s,
             "</p></div></div>"
         ].join("\n");
+       
+    },
+
+    /**
+     * Returns an error bar, with error icon and the text supplied
+     */
+    error: function(s, id) {
+        return html.textbar(s, { "id": id, "state": "error", "icon": "alert" });
     },
 
     /**
      * Returns an info bar, with info icon and the text supplied
      */
-    info: function(s, containerid) {
-        return [
-            "<div class=\"ui-widget\" ",
-            containerid ? "id=\"" + containerid + "\" " : "",
-            ">",
-            "<div class=\"ui-state-highlight ui-corner-all\"><p style=\"padding: 4px\">",
-            "<span class=\"ui-icon ui-icon-info\"></span>",
-            s,
-            "</p></div></div>"
-        ].join("\n");
+    info: function(s, id) {
+        return html.textbar(s, { "id": id });
     },
 
     /**
      * Returns an warning bar, with warning icon and the text supplied
      */
-    warn: function(s, containerid) {
-        return [
-            "<div class=\"ui-widget\" ",
-            containerid ? "id=\"" + containerid + "\" " : "",
-            ">",
-            "<div class=\"ui-state-highlight ui-corner-all\"><p>",
-            "<span class=\"ui-icon ui-icon-alert\"></span>",
-            s,
-            "</p></div></div>"
-        ].join("\n");
+    warn: function(s, id) {
+        return html.textbar(s, { "id": id, "icon": "alert" });
     },
 
     /**
