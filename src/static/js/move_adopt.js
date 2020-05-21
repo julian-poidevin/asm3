@@ -1,21 +1,22 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, jQuery, _, asm, common, config, controller, dlgfx, format, header, edit_header, html, validate */
 
 $(function() {
+
+    "use strict";
 
     var move_adopt = {
 
         infobox: function(id, s) {
             return '<div id="' + id + '" class="ui-state-highlight ui-corner-all" ' +
                 'style="margin-top: 5px; padding: 0 .7em; width: 60%; margin-left: auto; margin-right: auto">' +
-                '<p class="centered"><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>' + s + '</p>' + 
+                '<p class="centered"><span class="ui-icon ui-icon-info"></span>' + s + '</p>' + 
                 '</div>';
         },
 
         warnbox: function(id, s) {
             return '<div id="' + id + '" class="ui-state-error ui-corner-all" ' +
                 'style="margin-top: 5px; padding: 0 .7em; width: 60%; margin-left: auto; margin-right: auto">' +
-                '<p class="centered"><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>' + s + '</p>' + 
+                '<p class="centered"><span class="ui-icon ui-icon-alert"></span>' + s + '</p>' + 
                 '</div>';
         },
 
@@ -98,7 +99,7 @@ $(function() {
                 '<div id="payment"></div>',
                 html.content_header(_("Boarding Cost"), true),
                 '<div id="costdisplay" class="ui-state-highlight ui-corner-all" style="margin-top: 5px; padding: 0 .7em; width: 60%; margin-left: auto; margin-right: auto">',
-                '<p class="centered"><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p class="centered"><span class="ui-icon ui-icon-info"></span>',
                 '<span id="costdata" class="centered"></span>',
                 '</p>',
                 '</div>',

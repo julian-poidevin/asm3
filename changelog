@@ -1,6 +1,30 @@
 44
 ================
 
+21/05/20 Prompt user to reload when new software is deployed #833
+21/05/20 Fix bad icon alignment, fix no longer needed in JQuery UI
+21/05/20 Handle flipped EXIF orientations (selfies, etc)
+21/05/20 Support for Chinese characters in mailing labels via unifont
+21/05/20 Make CTRL+A select all transactions in accounts screen
+21/05/20 Minimum lengths when looking for similar cell/email
+21/05/20 Allow < and > operators for Show If #294
+20/05/20 PetFinder require the CSV headings to process blank file
+19/05/20 Fix for broken mail merge params after refactoring
+19/05/20 Support RTL when editing documents in Hebrew/Arabic #831
+19/05/20 Add cache-busting protection for common method calls #830
+19/05/20 Protect csv_report and html_report from abuse #830
+19/05/20 Implement flood protection earlier in the chain #830
+18/05/20 Fix for payment widget assuming tax rates are whole %
+18/05/20 Show spinner when creating records from incoming forms #829
+18/05/20 Perform S3 delete/put in background to improve responsiveness #829
+18/05/20 Log and do not retry when Stripe notifies us of non-ASM payments
+18/05/20 Add en_BM locale for Bermuda
+18/05/20 Remove build time from home page, add about dialog #824
+18/05/20 Show warning message for IE11 users that support is ending #800
+18/05/20 Refactoring: remove IIFE for common, use const and use strict
+17/05/20 Switch to jshint for static js checking, remove < IE11 support #800
+17/05/20 Fix csv_parse to handle accidentally included UTF8 BOM #826
+17/05/20 Add separate view staff rota and merge animal permissions #682
 16/05/20 Only potentially create a blank reserve for the first reserveanimalname
 16/05/20 Show warning icon when create person updates a banned person #586
 16/05/20 Show an icon when online form create animal/person exists #586

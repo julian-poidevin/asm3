@@ -1,4 +1,3 @@
-/*jslint browser: true, forin: true, eqeq: true, plusplus: true, white: true, sloppy: true, vars: true, nomen: true, continue: true */
 /*global $, jQuery, alert, FileReader, DATE_FORMAT, IS_FORM */
 
 // This file is included with all online forms and used to load
@@ -6,10 +5,14 @@
 
 $(document).ready(function() {
 
-    var is_safari = navigator.userAgent.indexOf("Safari") > -1 && navigator.userAgent.indexOf("Chrome") == -1;
-    var is_ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    // NB: None of this js will load for IE8 and older due to JQuery 2 being required
-    var is_ie9 = navigator.appName.indexOf("Internet Explorer") !=-1 && navigator.appVersion.indexOf("MSIE 9")== -1;
+    "use strict";
+
+    var browser_is = {
+        chrome: navigator.userAgent.match(/Chrome/i),
+        safari: navigator.userAgent.match(/Safari/i),
+        ios:    navigator.userAgent.match(/iPad|iPhone|iPod/i),
+        ie9:    navigator.userAgent.match(/MSIE 9/i)
+    };
 
     // Loads and scales an image into an image form field for upload
     var process_image = function(field) {
@@ -118,7 +121,7 @@ $(document).ready(function() {
     // (only does anything for iOS and IE9 where the required attribute is not supported)
     var validate_required = function() {
         var rv = true;
-        if (is_ios || is_safari || is_ie9) {
+        if (browser_is.ios || browser_is.ie9) {
             $(".asm-onlineform-date, .asm-onlineform-text, .asm-onlineform-lookup, .asm-onlineform-notes").each(function() {
                 if ($(this).attr("required")) {
                     var v = String($(this).val()).trim(); // Throw away whitespace before checking
@@ -152,7 +155,7 @@ $(document).ready(function() {
             var o = $(this);
             if (!o.attr("data-visibleif")) { return; } // no rule, do nothing
             // Split rule in to field, cond (=!), value
-            var m = o.attr("data-visibleif").match(new RegExp("(.*)([=!])(.*)"));
+            var m = o.attr("data-visibleif").match(new RegExp("(.*)([=!<>])(.*)"));
             var field = m[1], cond = m[2], value = m[3];
             // Find the field and apply the condition
             $("input, select").each(function() {
@@ -165,6 +168,8 @@ $(document).ready(function() {
                     var toshow = false;
                     if (cond == "=") { toshow = v == value; }
                     else if (cond == "!") { toshow = v != value; }
+                    else if (cond == ">") { toshow = v > value; }
+                    else if (cond == "<") { toshow = v < value; }
                     o.toggle(toshow);
                     if (!toshow) {
                         // If we just hid a field that had the required attribute, 

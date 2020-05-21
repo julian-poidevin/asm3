@@ -1,7 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, _, asm, common, config, controller, dlgfx, format, header, html, tableform, validate */
 
 $(function() {
+
+    "use strict";
 
     var accounts_trx = {
 
@@ -9,7 +10,7 @@ $(function() {
             return [
                 '<div id="dialog-edit" style="display: none" title="' + html.title(_("Edit transaction")) + '">',
                 '<div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em">',
-                '<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p><span class="ui-icon ui-icon-info"></span>',
                 _("Transactions need a date and description."),
                 '</p>',
                 '</div>',
@@ -258,6 +259,14 @@ $(function() {
                          return common.ajax_post("accounts_trx", formdata);
                     })
                     .then(accounts_trx.reload);
+            });
+
+            // Allow CTRL+A to select all transactions
+            Mousetrap.bind("ctrl+a", function() {
+                $("#table-trx input[type='checkbox']").prop("checked", true);
+                $("#button-delete").button("option", "disabled", false); 
+                $("#button-reconcile").button("option", "disabled", false); 
+                return false;
             });
 
             $(".trx-edit-link").click(function() {

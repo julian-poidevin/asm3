@@ -1,7 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, jQuery, _, asm, common, config, controller, dlgfx, format, header, html, validate */
 
 $(function() {
+
+    "use strict";
 
     var publish_options = {
 
@@ -127,7 +128,7 @@ $(function() {
                 '<td></td>',
                 '<td>',
                 '<div class="ui-state-highlight ui-corner-all" style="padding: 0 .7em;">',
-                '<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p><span class="ui-icon ui-icon-info"></span>',
                 _("If you don't select any locations, publishers will include animals in all locations."),
                 '</p>',
                 '</div>',

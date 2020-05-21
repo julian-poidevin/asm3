@@ -54,9 +54,10 @@ version:
 	cp changelog src/static/pages/changelog.txt
 
 minify:
-	# Generate minified versions of all javascript in min folder
+	# Generate minified and compatible versions of all javascript in min folder
 	@echo "[minify] ============================="
 	mkdir -p src/static/js/min
+	# for i in src/static/js/*.js; do echo $$i && npx jsmin $$i > src/static/js/min/`basename $$i .js`.min.js; done
 	for i in src/static/js/*.js; do echo $$i; cat $$i | scripts/jsmin/jsmin > src/static/js/min/`basename $$i .js`.min.js; done
 
 rollup: minify
@@ -79,7 +80,7 @@ compile: compilejs compilepy compilejsmin
 
 compilejs:
 	@echo "[compile javascript] ================="
-	cd scripts/jslint && ./run.py
+	for i in src/static/js/*.js; do echo $$i; npx jshint --config scripts/jshint.conf $$i; done
 
 compilejsmin:
 	@echo "[compile jsmin] ======================"
@@ -89,12 +90,12 @@ compilepy:
 	@echo "[compile python] ====================="
 	flake8 --config=scripts/flake8 src/*.py src/asm3/*.py src/asm3/dbms/*.py src/asm3/publishers/*.py src/asm3/paymentprocessor/*.py
 
-smcom-dev: clean version rollup schema
+smcom-dev: clean version schema
 	@echo "[smcom dev us17] ===================="
 	rsync --progress --exclude '*.pyc' --exclude '__pycache__' --delete -r src/ root@$(DEPLOY_HOST):/usr/local/lib/asm_dev.new
 	ssh root@$(DEPLOY_HOST) "/root/scripts/sheltermanager_sync_asm.py syncdev only_us17"
 
-smcom-dev-all: clean version rollup schema
+smcom-dev-all: clean version schema
 	@echo "[smcom dev all] ======================"
 	rsync --progress --exclude '*.pyc' --exclude '__pycache__' --delete -r src/ root@$(DEPLOY_HOST):/usr/local/lib/asm_dev.new
 	ssh root@$(DEPLOY_HOST) "/root/scripts/sheltermanager_sync_asm.py syncdev"
@@ -152,7 +153,7 @@ deps:
 	apt-get install python3 python3-pip python3-pil python3-mysqldb python3-psycopg2
 	apt-get install python3-memcache python3-requests python3-reportlab python3-xhtml2pdf
 	apt-get install python3-sphinx python3-sphinx-rtd-theme texlive-latex-base texlive-latex-extra
-	apt-get install exuberant-ctags nodejs flake8 imagemagick wkhtmltopdf
+	apt-get install exuberant-ctags nodejs flake8 imagemagick wkhtmltopdf nodejs npm
 	apt-get install python3-webpy # See README for fix
 
 deploy:

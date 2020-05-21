@@ -1,7 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, jQuery, _, asm, common, config, controller, dlgfx, edit_header, format, header, html, validate */
 
 $(function() {
+
+    "use strict";
 
     var presets = {
         "Avery 5160" :  [ "letter", "inch", "2.75", "1.0", "0.19", "0.5", "3", "10" ],
@@ -22,15 +23,20 @@ $(function() {
         previewloaded: false,
 
         render: function() {
-
+            var hf = [
+                '<input type="hidden" name="mode" value="{mode}" />',
+                '<input type="hidden" name="mergeparams" data="mergeparams" />',
+                '<input type="hidden" name="mergereport" data="mergereport" />',
+                '<input type="hidden" name="mergetitle" data="mergetitle" />'
+            ].join("\n");
             return [
                 html.content_header(controller.title),
 
                 controller.numrows > 0 ? '<div class="ui-state-highlight ui-corner-all" style="margin-top: 5px; padding: 0 .7em;">' : "",
-                controller.numrows > 0 ? '<p class="centered"><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>' : "",
+                controller.numrows > 0 ? '<p class="centered"><span class="ui-icon ui-icon-info"></span>' : "",
                 controller.numrows > 0 ? _("{0} record(s) match the mail merge.").replace("{0}", controller.numrows) : "",
                 controller.numrows == 0 ? '<div class="ui-state-error ui-corner-all" style="margin-top: 5px; padding: 0 .7em;">' : "",
-                controller.numrows == 0 ? '<p class="centered"><span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>' : "",
+                controller.numrows == 0 ? '<p class="centered"><span class="ui-icon ui-icon-alert"></span>' : "",
                 controller.numrows == 0 ? _("{0} record(s) match the mail merge.").replace("{0}", controller.numrows) : "",
                 '</p>',
                 '</div>',
@@ -39,7 +45,7 @@ $(function() {
                 '<h3><a href="#">' + _("Produce a CSV File") + '</a></h3>',
                 '<div>',
                 '<form action="mailmerge" method="post">',
-                '<input type="hidden" name="mode" value="csv" />',
+                hf.replace("{mode}", "csv"),
                 '<p class="centered">',
                 '<input id="includeheader" type="checkbox" name="includeheader" class="asm-checkbox" />',
                 '<label for="includeheader">' + _("Include CSV header line") + '</label>',
@@ -51,7 +57,7 @@ $(function() {
                 '<h3 id="printlabel"><a href="#">' + _("Produce a PDF of printable labels") + '</a></h3>',
                 '<div>',
                 '<form action="mailmerge" method="post">',
-                '<input type="hidden" name="mode" value="labels" />',
+                hf.replace("{mode}", "labels"),
                 '<table width="100%">',
                 '<tr>',
                 '<td><label for="labeltype">' + _("Type") + '</label></td>',
@@ -95,6 +101,7 @@ $(function() {
 
                 '<h3><a href="#">' + _("Send emails") + '</a></h3>',
                 '<div id="sendemail">',
+                hf.replace("{mode}", "email"),
                 '<table width="100%">',
                 '<tr>',
                 '<td><label for="emailfrom">' + _("From") + '</label></td>',
@@ -115,7 +122,7 @@ $(function() {
                 '</td>',
                 '<td>',
                 '<div class="ui-state-highlight ui-corner-all" style="margin-top: 5px; padding: 0 .7em;">',
-                '<p class="centered"><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p class="centered"><span class="ui-icon ui-icon-info"></span>',
                 _("Valid tokens for the subject and text") + ':',
                 '<br/><br/>',
                 mailmerge.render_fields(),
@@ -130,7 +137,7 @@ $(function() {
                 '<h3><a href="#">' + _("Generate documents") + '</a></h3>',
                 '<div>',
                 '<form id="mailmerge-letters" action="mailmerge" method="post">',
-                '<input type="hidden" name="mode" value="document" />',
+                hf.replace("{mode}", "document"),
                 '<input type="hidden" id="templateid" name="templateid" value = "" />',
                 '<ul class="asm-menu-list">',
                 edit_header.template_list(controller.templates, "#", 0),
@@ -140,6 +147,7 @@ $(function() {
 
                 '<h3 id="lmatching"><a href="#">' + _("View matching records") + '</a></h3>',
                 '<div id="matching">',
+                hf.replace("{mode}", "preview"),
                 '</div>',
                 
                 html.content_footer()
@@ -234,7 +242,8 @@ $(function() {
                 if (ui.newHeader.attr("id") == "lmatching" && !mailmerge.previewloaded) {
                     mailmerge.previewloaded = true;
                     header.show_loading();
-                    common.ajax_post("mailmerge", "mode=preview").then(function(data) {
+                    var formdata = "mode=preview&" + $("#matching input").toPOST();
+                    common.ajax_post("mailmerge", formdata).then(function(data) {
                         // Create a table of matching rows
                         var h = [], d = jQuery.parseJSON(data);
                         h.push("<table><thead><tr>");
@@ -268,6 +277,10 @@ $(function() {
                     " " + _("Sending {0} emails is considered abusive and will damage the reputation of the email server.").replace("{0}", controller.numrows) ) );
             }
 
+            // Set values for extra merge info
+            $("input[name='mergeparams']").val( controller.mergeparams );
+            $("input[name='mergereport']").val( controller.mergereport );
+            $("input[name='mergetitle']").val( controller.mergetitle );
         },
 
         destroy: function() {

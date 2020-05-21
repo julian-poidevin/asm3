@@ -1,7 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, jQuery, _, asm, common, config, controller, dlgfx, edit_header, format, header, html, tableform, validate */
 
 $(function() {
+
+    "use strict";
 
     var donations = {
 
@@ -371,7 +372,7 @@ $(function() {
             s += tableform.buttons_render(this.buttons);
             s += tableform.table_render(this.table);
             s += '<div id="totals" class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em">';
-            s += '<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>';
+            s += '<p><span class="ui-icon ui-icon-info"></span>';
             s += '<span id="tdue">' + _("Due") + ': <span class="strong" id="duetotal"></span></span> ';
             s += '<span id="tgross">' + _("Gross") + ': <span class="strong" id="grosstotal"></span></span> ';
             if (config.bool("VATEnabled")) {

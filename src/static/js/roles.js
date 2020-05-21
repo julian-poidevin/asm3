@@ -1,7 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, jQuery, _, asm, common, config, controller, dlgfx, format, header, html, tableform, validate */
 
 $(function() {
+
+    "use strict";
 
     var roles = {
 
@@ -11,7 +12,7 @@ $(function() {
             var h = [
                 '<div id="dialog-add" style="display: none" title="' + html.title(_("Add role")) + '">',
                 '<div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em">',
-                '<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p><span class="ui-icon ui-icon-info"></span>',
                 _("Roles need a name."),
                 '</p>',
                 '</div>',
@@ -34,6 +35,7 @@ $(function() {
                 cr("va", _("View Animals")),
                 cr("da", _("Delete Animals")),
                 cr("cloa", _("Clone Animals")),
+                cr("ma", _("Merge Animals")),
                 cr("gaf", _("Generate Documents")),
                 cl(_("Litters")),
                 cr("all", _("Add Litter")),
@@ -181,6 +183,7 @@ $(function() {
                 cl(_("Rota")),
                 cr("aoro", _("Add Rota")),
                 cr("voro", _("View Rota")),
+                cr("vsro", _("View Staff Rota")),
                 cr("coro", _("Change Rota")),
                 cr("doro", _("Delete Rota")),
                 cl(_("Stock Control")),

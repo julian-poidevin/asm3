@@ -1,7 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, _, asm, common, config, controller, dlgfx, additional, edit_header, format, header, html, log, social, tableform, validate */
 
 $(function() {
+
+    "use strict";
 
     var animal = {
 
@@ -768,7 +769,7 @@ $(function() {
                 '<div id="emailform" />',
                 '<div id="dialog-merge" style="display: none" title="' + html.title(_("Select animal to merge")) + '">',
                 '<div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em">',
-                '<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p><span class="ui-icon ui-icon-info"></span>',
                 _("Select an animal to merge into this record. The selected animal will be removed, and their movements, diary notes, log entries, etc. will be reattached to this record."),
                 '</p>',
                 '</div>',
@@ -1140,7 +1141,7 @@ $(function() {
 
             if (!common.has_permission("ca")) { $("#button-save").hide(); }
             if (!common.has_permission("aa")) { $("#button-clone").hide(); }
-            if (!common.has_permission("da")) { $("#button-merge").hide(); }
+            if (!common.has_permission("ma")) { $("#button-merge").hide(); }
             if (!common.has_permission("da")) { $("#button-delete").hide(); }
             if (!common.has_permission("emo")) { $("#button-email").hide(); }
             if (!common.has_permission("gaf")) { $("#button-document").hide(); }

@@ -9,6 +9,7 @@ for others.
 
 import asm3.al
 import asm3.animal
+import asm3.cachemem
 import asm3.cachedisk
 import asm3.configuration
 import asm3.db
@@ -24,7 +25,7 @@ import asm3.publishers.html
 import asm3.reports
 import asm3.users
 import asm3.utils
-from asm3.i18n import _
+from asm3.i18n import _, now, add_seconds, subtract_seconds
 from asm3.sitedefs import JQUERY_JS, JQUERY_UI_JS, MOMENT_JS, SIGNATURE_JS, TOUCHPUNCH_JS
 from asm3.sitedefs import BASE_URL, MULTIPLE_DATABASES, CACHE_SERVICE_RESPONSES, IMAGE_HOTLINKING_ONLY_FROM_DOMAIN
 
@@ -40,23 +41,98 @@ AUTH_METHODS = [
     "xml_recent_changes", "json_recent_changes", "jsonp_recent_changes"
 ]
 
-def flood_protect(method, account, remoteip, ttl, message = ""):
-    """ Checks to see if we've had a request for method from remoteip since ttl seconds ago.
-    If we haven't, we record this as the last time we saw a request
-    from this ip address for that method. Otherwise, an error is thrown.
+# These are service methods that are defended against cache busting
+CACHE_PROTECT_METHODS = {
+    "animal_image": [ "animalid", "seq" ],
+    "animal_thumbnail": [ "animalid", "seq", "d" ],
+    "animal_view": [ "animalid" ],
+    "animal_view_adoptable_js": [], 
+    "animal_view_adoptable_html": [],
+    "checkout": [ "processor", "payref" ],
+    "dbfs_image": [ "title" ],
+    "extra_image": [ "title" ],
+    "media_image": [ "mediaid" ],
+    "json_adoptable_animal": [ "animalid" ],
+    "html_adoptable_animals": [ "speciesid", "animaltypeid", "locationid", "template" ],
+    "html_adopted_animals": [ "days", "template", "speciesid", "animaltypeid" ],
+    "html_deceased_animals": [ "days", "template", "speciesid", "animaltypeid" ],
+    "html_flagged_animals": [ "template", "speciesid", "animaltypeid", "flag", "all" ],
+    "html_held_animals": [ "template", "speciesid", "animaltypeid" ],
+    "json_adoptable_animals": [ "sensitive" ],
+    "xml_adoptable_animal": [ "animalid" ],
+    "xml_adoptable_animals": [ "sensitive" ],
+    "json_found_animals": [],
+    "xml_found_animals": [],
+    "json_lost_animals": [],
+    "xml_lost_animals": [],
+    "json_recent_adoptions": [], 
+    "xml_recent_adoptions": [],
+    # "html_report", "csv_mail", "csv_report" not included due to custom params
+    "json_recent_changes": [], 
+    "xml_recent_changes": [],
+    "json_shelter_animals": [ "sensitive" ],
+    "xml_shelter_animals": [ "sensitive" ],
+    "rss_timeline": [],
+    # "upload_animal_image" is a write method
+    "online_form_html": [ "formid" ],
+    "online_form_json": [ "formid" ]
+    # "online_form_post" is a write method
+    # "sign_document" is a write method
+}
+
+# Service methods that require flood protection
+# method, request limit, requests in last seconds, ban period in seconds
+# Eg: 1 / 15 / 30 bans for 30 seconds after 1 request in 15 seconds.
+FLOOD_PROTECT_METHODS = {
+    "csv_mail": [ 5, 60, 60 ],
+    "csv_report": [ 5, 60, 60 ],
+    "html_report": [ 5, 60, 60 ],
+    "online_form_post": [ 1, 15, 15 ],
+    "upload_animal_image": [ 2, 30, 30 ]
+}
+
+def flood_protect(method, remoteip):
+    """ 
+    Implements flood protection for methods.
+    Keeps a list of timestamps in an in memory cache for the method and IP address.
+    If this IP makes more than the request limit for the period, the request is rejected 
+        and the IP banned for a period.
     method: The service method we're protecting
     remoteip: The ip address of the caller
-    ttl: The protection period (one request per ttl seconds)
     """
-    cache_key = "m%sr%s" % (method, str(remoteip).replace(", ", "")) # X-FORWARDED-FOR can be a list, remove commas
-    v = asm3.cachedisk.get(cache_key, account)
-    asm3.al.debug("method: %s, remoteip: %s, ttl: %d, cacheval: %s" % (method, remoteip, ttl, v), "service.flood_protect")
+    CACHE_TTL = 120 # Flood protection only operates for a minute or so keep entry alive for a couple
+    remoteip = str(remoteip).replace(", ", "") # X-FORWARDED-FOR can be a list, remove commas
+    cache_key = "m%sr%s" % (method, remoteip)    
+    # Get the entry for this IP
+    v = asm3.cachemem.get(cache_key)
     if v is None:
-        asm3.cachedisk.put(cache_key, account, "x", ttl)
+        v = { "b": None, "h": [ asm3.i18n.now() ] } # b = banned until, h = list of hits as timestamps
+        asm3.cachemem.put(cache_key, v, CACHE_TTL) 
     else:
-        if message == "":
-            message = "You have already called '%s' in the last %d seconds, please wait before trying again." % (method, ttl)
-        raise asm3.utils.ASMError(message)
+        # asm3.al.debug("protecting '%s' from '%s': cache: %s" % (method, remoteip, v), "service.flood_protect")
+        # Is this IP banned?
+        if v["b"] is not None and now() < v["b"]:
+            asm3.al.error("%s is banned from calling '%s' until '%s'" % (remoteip, method, v["b"]), "service.flood_protect")
+            message = "You cannot call '%s' until '%s'" % (method, v["b"])
+            raise asm3.utils.ASMError(message)
+        # Add a hit for now
+        v["h"].append(now())
+        request_limit, periods, banneds = FLOOD_PROTECT_METHODS[method]
+        # Calculate how long ago period in s was and how many requests this IP has made in the period
+        cutoff = subtract_seconds(now(), periods)
+        requests_in_period = 0
+        for d in v["h"]:
+            if d > cutoff: requests_in_period += 1
+        # Are we over the limit?
+        if requests_in_period > request_limit:
+            v["b"] = add_seconds(now(), banneds) # Mark this IP banned for this method for the ban period
+            asm3.cachemem.put(cache_key, v, CACHE_TTL)
+            asm3.al.error("%s has called '%s', %s times in the last %d seconds. Banning until '%s' (%s seconds)" % (remoteip, method, request_limit, periods, v["b"], banneds), "service.flood_protect")
+            message = "You have already called '%s', %s times in the last %d seconds, please wait %d seconds before trying again." % (method, request_limit, periods, banneds)
+            raise asm3.utils.ASMError(message)
+        else:
+            # Update the cache with the new hit and continue
+            asm3.cachemem.put(cache_key, v, CACHE_TTL)
 
 def hotlink_protect(method, referer):
     """ Protect a method from having any referer other than the one we set """
@@ -67,6 +143,24 @@ def hotlink_protect(method, referer):
     if referer != "" and IMAGE_HOTLINKING_ONLY_FROM_DOMAIN != "" and not fromhldomain:
         raise asm3.utils.ASMPermissionError("Hotlinking to %s from %s is forbidden" % (method, referer))
 
+def safe_cache_key(method, qs):
+    """ 
+    Reads the parameters from querystring and throws away 
+    any parameters that are not in CACHE_PROTECT_METHODS for the method.
+    If the method appears in AUTH_METHODS, whitelists the username/password params.
+    """
+    if qs.startswith("?"): qs = qs[1:]
+    whitelist = [ "method", "account" ]
+    if method in AUTH_METHODS:
+        whitelist += [ "username", "password" ]
+    whitelist += CACHE_PROTECT_METHODS[method]
+    out = []
+    for p in qs.split("&"):
+        b = p.split("=", 1)
+        if len(b) != 2: continue
+        if b[0].lower() in whitelist: out.append(p)
+    return "&".join(out)
+
 def get_cached_response(cache_key, path):
     """ Gets a service call response from the cache based on its key.
     If no entry is found, None is returned.
@@ -74,7 +168,7 @@ def get_cached_response(cache_key, path):
     if not CACHE_SERVICE_RESPONSES: return None
     response = asm3.cachedisk.get(cache_key, path)
     if response is None or len(response) != 4: return None
-    asm3.al.debug("GET: %s (%d bytes)" % (cache_key, len(response[3])), "service.get_cached_response")
+    # asm3.al.debug("GET: %s (%d bytes)" % (cache_key, len(response[3])), "service.get_cached_response")
     return response
 
 def set_cached_response(cache_key, path, mime, clientage, serverage, content):
@@ -88,7 +182,7 @@ def set_cached_response(cache_key, path, mime, clientage, serverage, content):
     """
     response = (mime, clientage, serverage, content)
     if not CACHE_SERVICE_RESPONSES: return response
-    asm3.al.debug("PUT: %s (%d bytes)" % (cache_key, len(content)), "service.set_cached_response")
+    # asm3.al.debug("PUT: %s (%d bytes)" % (cache_key, len(content)), "service.set_cached_response")
     asm3.cachedisk.put(cache_key, path, response, serverage)
     return response
 
@@ -217,21 +311,31 @@ def handler(post, path, remoteip, referer, querystring):
     method = post["method"]
     animalid = post.integer("animalid")
     formid = post.integer("formid")
+    mediaid = post.integer("mediaid")
     seq = post.integer("seq")
     title = post["title"]
     strip_personal = post.integer("sensitive") == 0
 
+    # If this method is in the cache protected list, only use
+    # whitelisted parameters for the key to prevent callers 
+    # cache-busting by adding junk parameters
     cache_key = querystring.replace(" ", "")
+    if method in CACHE_PROTECT_METHODS:
+        cache_key = safe_cache_key(method, cache_key)
 
     # Do we have a cached response for these parameters?
     cached_response = get_cached_response(cache_key, account)
     if cached_response is not None:
-        asm3.al.debug("cache hit for %s" % (cache_key), "service.handler")
+        asm3.al.debug("cache hit: %s (%d bytes)" % (cache_key, len(cached_response[3])), "service.handler", account)
         return cached_response
 
     # Are we dealing with multiple databases, but no account was specified?
     if account == "" and MULTIPLE_DATABASES:
         return ("text/plain", 0, 0, "ERROR: No database/alias specified")
+
+    # Is flood protection activated for this method?
+    if method in FLOOD_PROTECT_METHODS:
+        flood_protect(method, remoteip)
 
     dbo = asm3.db.get_database(account)
 
@@ -267,7 +371,7 @@ def handler(post, path, remoteip, referer, querystring):
     l = asm3.configuration.locale(dbo)
     dbo.locale = l
     dbo.timezone = asm3.configuration.timezone(dbo)
-    asm3.al.info("call %s->%s [%s %s]" % (username, method, str(animalid), title), "service.handler", dbo)
+    asm3.al.info("call @%s --> %s [%s]" % (username, method, querystring), "service.handler", dbo)
 
     if method =="animal_image":
         hotlink_protect("animal_image", referer)
@@ -286,7 +390,7 @@ def handler(post, path, remoteip, referer, querystring):
         else:
             dummy, data = asm3.media.get_image_file_data(dbo, "animalthumb", asm3.utils.cint(animalid), seq)
             if data == "NOPIC": dummy, data = asm3.media.get_image_file_data(dbo, "nopic", 0)
-            return set_cached_response(cache_key, account, "image/jpeg", 86400, 86400, data)
+            return set_cached_response(cache_key, account, "image/jpeg", 86400, 3600, data)
 
     elif method == "animal_view":
         if asm3.utils.cint(animalid) == 0:
@@ -322,7 +426,7 @@ def handler(post, path, remoteip, referer, querystring):
     elif method =="media_image":
         hotlink_protect("media_image", referer)
         return set_cached_response(cache_key, account, "image/jpeg", 86400, 86400, 
-            asm3.dbfs.get_string_id( dbo, dbo.query_int("select dbfsid from media where id = ?", [post.integer("mediaid")]) ))
+            asm3.dbfs.get_string_id( dbo, dbo.query_int("select dbfsid from media where id = ?", [mediaid]) ))
 
     elif method == "json_adoptable_animal":
         if asm3.utils.cint(animalid) == 0:
@@ -502,7 +606,6 @@ def handler(post, path, remoteip, referer, querystring):
         return set_cached_response(cache_key, account, "application/json; charset=utf-8", 30, 30, asm3.onlineform.get_onlineform_json(dbo, formid))
 
     elif method == "online_form_post":
-        flood_protect("online_form_post", account, remoteip, 15)
         asm3.onlineform.insert_onlineformincoming_from_form(dbo, post, remoteip)
         redirect = post["redirect"]
         if redirect == "":

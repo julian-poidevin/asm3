@@ -6,8 +6,8 @@ import time
 # flake8: noqa - we have a lot of locales and this is convenient
 from asm3.locales import *
 
-VERSION = "44u [Sat 16 May 20:05:14 BST 2020]"
-BUILD = "05162005"
+VERSION = "44u [Thu 21 May 13:31:55 BST 2020]"
+BUILD = "05211331"
 
 DMY = ( "%d/%m/%Y", "%d/%m/%y" )
 HDMY = ( "%d-%m-%Y", "%d-%m-%y" )
@@ -68,6 +68,7 @@ locale_maps = {
     "en_AE":    ( "English", "United Arab Emirates", DMY, "&#x62f;&#x2e;&#x625;", PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", ","),
     "en_AW":    ( "English", "Aruba", DMY, "Awg.", PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_BE":    ( "English", "Belgium", DMY, EURO, PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ",", " " ),
+    "en_BM":    ( "English", "Bermuda", DMY, DOLLAR, PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_BG":    ( "English", "Bulgaria", HYMD, "&#x043b;&#x0432;", PLURAL_ENGLISH, CURRENCY_SUFFIX, 2, ",", " "),
     "en_BH":    ( "English", "Bahrain", MDY, "BD", PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
     "en_BQ":    ( "English", "Bonaire", DMY, DOLLAR, PLURAL_ENGLISH, CURRENCY_PREFIX, 2, ".", "," ),
@@ -142,14 +143,14 @@ def _(english, locale = "en"):
     return translate(english, locale)
 
 def real_locale(locale = "en"):
-    # Treat some locales as pointers to other locales with out the
-    # need for a full translation:
+    # When translating text strings, treat some locales as pointers 
+    # to other locales without the need for a full translation:
     # Our core English locales (with actual differences) are:
     #   en    (US)
     #   en_AU (Australia)
     #   en_CA (Canada)
     #   en_GB (UK)
-    if locale in ("en_AE", "en_BE", "en_BG", "en_BQ", "en_CH", "en_CN", "en_CY", "en_ES", 
+    if locale in ("en_AE", "en_BE", "en_BG", "en_BM", "en_BQ", "en_CH", "en_CN", "en_CY", "en_ES", 
         "en_HK", "en_IE", "en_IN", "en_JP", "en_KH", "en_LB", "en_LU", "en_MY", "en_NA", "en_PH", 
         "en_QA", "en_TH", "en_TW", "en_TW2", "en_VN", "en_ZA"):
         locale = "en_GB"
@@ -505,6 +506,27 @@ def add_minutes(date, nomins = 1):
     """
     if date is None: return None
     return date + datetime.timedelta(minutes = nomins)
+
+def add_seconds(date, nosecs = 1):
+    """
+    Add secs to date, returning a new datetime
+    """
+    if date is None: return None
+    return date + datetime.timedelta(seconds = nosecs)
+
+def subtract_seconds(date, nosecs = 1):
+    """
+    Subtract seconds from date, returning a new datetime
+    """
+    if date is None: return None
+    return date - datetime.timedelta(seconds = nosecs)
+
+def subtract_minutes(date, nomins = 1):
+    """
+    Subtract minutes from date, returning a new datetime
+    """
+    if date is None: return None
+    return date - datetime.timedelta(minutes = nomins)
 
 def subtract_hours(date, nohours = 1):
     """

@@ -1,8 +1,8 @@
-/*jslint browser: true, forin: true, eqeq: true, white: true, sloppy: true, vars: true, nomen: true */
 /*global $, _, asm, common, config, controller, dlgfx, edit_header, format, header, html, tableform, validate */
 
 $(function() {
 
+    "use strict";
 
     var animal_costs = {
 
@@ -111,7 +111,7 @@ $(function() {
             s += [
                 '<div id="asm-cost-footer">',
                 '<div class="ui-state-highlight ui-corner-all" style="margin-top: 20px; padding: 0 .7em">',
-                '<p><span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>',
+                '<p><span class="ui-icon ui-icon-info"></span>',
                 '<span id="costtotals"></span>',
                 '</div>',
                 '</div>'
