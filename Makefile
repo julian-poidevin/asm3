@@ -164,6 +164,8 @@ deps:
 	apt-get install python3-sphinx python3-sphinx-rtd-theme texlive-latex-base texlive-latex-extra
 	apt-get install exuberant-ctags nodejs flake8 imagemagick wkhtmltopdf nodejs npm
 	apt-get install python3-webpy # See README for fix
+	npm install
+
 
 deploy:
 	cd ./scripts/mceasso; \
