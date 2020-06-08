@@ -91,6 +91,7 @@ $(function() {
                         tableform.dialog_close();
                     }
                     catch(err) {
+                        log.error(err, err);
                         tableform.dialog_enable_buttons();
                     }
                 },
@@ -462,7 +463,7 @@ $(function() {
                         row.OWNERID + "&payref=" + row.OWNERCODE + "-" + row.RECEIPTNUMBER,
                     name: row.OWNERNAME,
                     email: row.EMAILADDRESS,
-                    personid: row.OWNERID,
+                    donationids: tableform.table_ids(donations.table),
                     subject: row.COMMENTS || row.DONATIONNAME,
                     templates: controller.templates,
                     logtypes: controller.logtypes,
