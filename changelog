@@ -1,9 +1,15 @@
 44
 ================
 
+20/06/20 create_document_media passing str instead of bytes #867
+19/06/20 Include diary note creator in email
+19/06/20 Show match added/expires on looking for report #845
+19/06/20 Suppress multiple spaces in flag names #866
+16/06/20 Additional fields protected by wrong MODIFY_LOOKUPS permission
+16/06/20 Add animal Jurisdiction field and hide/show/default config #650
 15/06/20 translate relative img looking for wrong param animal/animalthumb
 14/06/20 IncidentLogs table wordkey
-12/06/20 Accept comments move_* screens #860
+12/06/20 Accept comments on move_* screens #860
 11/06/20 Auto reload application without the button
 11/06/20 PetRescue: display_contact_preferred_method_only support
 10/06/20 PetRescue: Option to control contact phone numbers

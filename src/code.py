@@ -1219,7 +1219,7 @@ class accounts_trx(JSONEndpoint):
 
 class additional(JSONEndpoint):
     url = "additional"
-    get_permissions = asm3.users.MODIFY_LOOKUPS
+    get_permissions = asm3.users.MODIFY_ADDITIONAL_FIELDS
 
     def controller(self, o):
         dbo = o.dbo
@@ -1232,15 +1232,15 @@ class additional(JSONEndpoint):
         }
 
     def post_create(self, o):
-        self.check(asm3.users.MODIFY_LOOKUPS)
+        self.check(asm3.users.MODIFY_ADDITIONAL_FIELDS)
         return asm3.additional.insert_field_from_form(o.dbo, o.user, o.post)
 
     def post_update(self, o):
-        self.check(asm3.users.MODIFY_LOOKUPS)
+        self.check(asm3.users.MODIFY_ADDITIONAL_FIELDS)
         asm3.additional.update_field_from_form(o.dbo, o.user, o.post)
 
     def post_delete(self, o):
-        self.check(asm3.users.MODIFY_LOOKUPS)
+        self.check(asm3.users.MODIFY_ADDITIONAL_FIELDS)
         for fid in o.post.integer_list("ids"):
             asm3.additional.delete_field(o.dbo, o.user, fid)
 
@@ -1276,6 +1276,7 @@ class animal(JSONEndpoint):
             "flags": asm3.lookups.get_animal_flags(dbo),
             "incidents": asm3.animalcontrol.get_animalcontrol_for_animal(dbo, o.post.integer("id")),
             "internallocations": asm3.lookups.get_internal_locations(dbo, o.locationfilter, o.siteid),
+            "jurisdictions": asm3.lookups.get_jurisdictions(dbo),
             "logtypes": asm3.lookups.get_log_types(dbo),
             "pickuplocations": asm3.lookups.get_pickup_locations(dbo),
             "publishhistory": asm3.animal.get_publish_history(dbo, a["ID"]),
@@ -1717,6 +1718,7 @@ class animal_new(JSONEndpoint):
             "flags": asm3.lookups.get_animal_flags(dbo),
             "sexes": asm3.lookups.get_sexes(dbo),
             "entryreasons": asm3.lookups.get_entryreasons(dbo),
+            "jurisdictions": asm3.lookups.get_jurisdictions(dbo),
             "internallocations": asm3.lookups.get_internal_locations(dbo, o.locationfilter, o.siteid),
             "sizes": asm3.lookups.get_sizes(dbo)
         }
@@ -2195,11 +2197,11 @@ class clinic_waitingroom(JSONEndpoint):
 
 class csvexport(JSONEndpoint):
     url = "csvexport"
-    get_permissions = asm3.users.USE_SQL_INTERFACE
+    get_permissions = asm3.users.EXPORT_REPORT
 
 class csvexport_animals(ASMEndpoint):
     url = "csvexport_animals"
-    get_permissions = asm3.users.USE_SQL_INTERFACE
+    get_permissions = asm3.users.EXPORT_REPORT
 
     def content(self, o):
         # If we're retrieving an already saved export, serve it.
@@ -4382,6 +4384,7 @@ class options(JSONEndpoint):
             "entryreasons": asm3.lookups.get_entryreasons(dbo),
             "incidenttypes": asm3.lookups.get_incident_types(dbo),
             "haspaypal": PAYPAL_VALIDATE_IPN_URL != "",
+            "jurisdictions": asm3.lookups.get_jurisdictions(dbo),
             "locales": get_locales(),
             "locations": asm3.lookups.get_internal_locations(dbo),
             "logtypes": asm3.lookups.get_log_types(dbo),
