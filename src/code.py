@@ -736,6 +736,11 @@ class media(ASMEndpoint):
         for mid in o.post.integer_list("ids"):
             asm3.media.rotate_media(o.dbo, o.user, mid, False)
 
+    def post_watermark(self, o):
+        self.check(asm3.users.CHANGE_MEDIA)
+        for mid in o.post.integer_list("ids"):
+            asm3.media.watermark_media(o.dbo, o.user, mid)
+
     def post_web(self, o):
         self.check(asm3.users.CHANGE_MEDIA)
         mid = o.post.integer_list("ids")[0]
@@ -1643,6 +1648,7 @@ class animal_media(JSONEndpoint):
             "media": m,
             "animal": a,
             "tabcounts": asm3.animal.get_satellite_counts(dbo, a["ID"])[0],
+            "canwatermark": True and asm3.media.watermark_available(dbo),
             "showpreferred": True,
             "linkid": o.post.integer("id"),
             "linktypeid": asm3.media.ANIMAL,
@@ -2966,6 +2972,7 @@ class foundanimal_media(JSONEndpoint):
             "animal": a,
             "tabcounts": asm3.lostfound.get_foundanimal_satellite_counts(dbo, a["LFID"])[0],
             "showpreferred": True,
+            "canwatermark": False,
             "linkid": o.post.integer("id"),
             "linktypeid": asm3.media.FOUNDANIMAL,
             "logtypes": asm3.lookups.get_log_types(dbo),
@@ -3227,6 +3234,7 @@ class incident_media(JSONEndpoint):
             "incident": a,
             "tabcounts": asm3.animalcontrol.get_animalcontrol_satellite_counts(dbo, a["ACID"])[0],
             "showpreferred": True,
+            "canwatermark": False,
             "linkid": o.post.integer("id"),
             "linktypeid": asm3.media.ANIMALCONTROL,
             "logtypes": asm3.lookups.get_log_types(dbo),
@@ -3578,6 +3586,7 @@ class lostanimal_media(JSONEndpoint):
             "animal": a,
             "tabcounts": asm3.lostfound.get_lostanimal_satellite_counts(dbo, a["LFID"])[0],
             "showpreferred": True,
+            "canwatermark": False,
             "linkid": o.post.integer("id"),
             "linktypeid": asm3.media.LOSTANIMAL,
             "logtypes": asm3.lookups.get_log_types(dbo),
@@ -4866,6 +4875,7 @@ class person_media(JSONEndpoint):
             "person": p,
             "tabcounts": asm3.person.get_satellite_counts(dbo, p["ID"])[0],
             "showpreferred": True,
+            "canwatermark": False,
             "linkid": o.post.integer("id"),
             "linktypeid": asm3.media.PERSON,
             "logtypes": asm3.lookups.get_log_types(dbo),
@@ -5906,6 +5916,7 @@ class waitinglist_media(JSONEndpoint):
             "animal": a,
             "tabcounts": asm3.waitinglist.get_satellite_counts(dbo, a["WLID"])[0],
             "showpreferred": True,
+            "canwatermark": False,
             "linkid": o.post.integer("id"),
             "linktypeid": asm3.media.WAITINGLIST,
             "logtypes": asm3.lookups.get_log_types(dbo),
