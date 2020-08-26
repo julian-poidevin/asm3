@@ -1,14 +1,14 @@
-Medical History
+Medical History (multi)
 ###
 Medical
 ###
 3309/Any
 ###
-Medical regimens, vaccinations, tests, neuter/spay and microchip implants for an animal
+Medical regimens, vaccinations, tests, neuter/spay and microchip implants for multiple shelter animals
 ###
 en
 ###
-$VAR aid ANIMAL$
+$VAR aid ANIMALS$
 
 SELECT * FROM
 (
@@ -23,7 +23,7 @@ INNER JOIN animaltype t ON t.ID = a.AnimalTypeID
 INNER JOIN species sp ON sp.ID = a.SpeciesID
 INNER JOIN internallocation il ON il.ID = a.ShelterLocation
 INNER JOIN animalmedical am ON a.ID = am.AnimalID
-WHERE a.ID = $@aid$ AND am.StartDate <= '$CURRENT_DATE$'
+WHERE a.ID IN ($@aid$) AND am.StartDate <= '$CURRENT_DATE$'
 
 UNION SELECT
 'Vaccination' AS mtype, a.ShelterCode, a.AnimalName, a.ID AS AID, 
@@ -36,7 +36,7 @@ INNER JOIN animalvaccination av ON a.ID = av.AnimalID
 INNER JOIN species sp ON sp.ID = a.SpeciesID
 INNER JOIN vaccinationtype v ON av.VaccinationID = v.ID
 INNER JOIN internallocation il ON il.ID = a.ShelterLocation
-WHERE a.ID = $@aid$ AND av.DateOfVaccination Is Not Null
+WHERE a.ID IN ($@aid$) AND av.DateOfVaccination Is Not Null
 
 UNION SELECT
 'Test' AS mtype, a.ShelterCode, a.AnimalName, a.ID AS AID, 
@@ -51,7 +51,7 @@ INNER JOIN species sp ON sp.ID = a.SpeciesID
 INNER JOIN testtype tt ON at.TestTypeID = tt.ID
 INNER JOIN testresult tr ON at.TestResultID = tr.ID
 INNER JOIN internallocation il ON il.ID = a.ShelterLocation
-WHERE a.ID = $@aid$ AND at.DateOfTest Is Not Null
+WHERE a.ID IN ($@aid$) AND at.DateOfTest Is Not Null
 
 UNION SELECT
 'Microchip' AS mtype, a.ShelterCode, a.AnimalName, a.ID AS AID,
@@ -62,7 +62,7 @@ FROM animal a
 INNER JOIN animaltype t ON t.ID = a.AnimalTypeID
 INNER JOIN species sp ON sp.ID = a.SpeciesID
 INNER JOIN internallocation il ON il.ID = a.ShelterLocation
-WHERE a.ID = $@aid$ AND a.IdentichipDate Is Not Null
+WHERE a.ID IN ($@aid$) AND a.IdentichipDate Is Not Null
 
 UNION SELECT
 'Microchip' AS mtype, a.ShelterCode, a.AnimalName, a.ID AS AID,
@@ -73,7 +73,7 @@ FROM animal a
 INNER JOIN animaltype t ON t.ID = a.AnimalTypeID
 INNER JOIN species sp ON sp.ID = a.SpeciesID
 INNER JOIN internallocation il ON il.ID = a.ShelterLocation
-WHERE a.ID = $@aid$ AND a.Identichip2Date Is Not Null
+WHERE a.ID IN ($@aid$) AND a.Identichip2Date Is Not Null
 
 UNION SELECT
 'Neuter/Spay' AS mtype, a.ShelterCode, a.AnimalName, a.ID AS AID,
@@ -84,7 +84,7 @@ FROM animal a
 INNER JOIN animaltype t ON t.ID = a.AnimalTypeID
 INNER JOIN species sp ON sp.ID = a.SpeciesID
 INNER JOIN internallocation il ON il.ID = a.ShelterLocation
-WHERE a.ID = $@aid$ AND a.NeuteredDate Is Not Null
+WHERE a.ID IN ($@aid$) AND a.NeuteredDate Is Not Null
 
 ) dummy
 ORDER BY AnimalName, StartDate DESC
@@ -105,6 +105,7 @@ $$HEAD
 </tr>
 $$FOOT
 </table>
+<!-- <div style="page-break-after: always"></div> -->
 GROUP$$
 
 $$BODY
