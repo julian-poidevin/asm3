@@ -587,7 +587,7 @@ const common = {
         }
         common.module_running = o;
         if (o.autofocus && !asm.mobileapp) {
-            setTimeout(function() { $(o.autofocus).focus(); }, 750);
+            $(o.autofocus).focus();
         }
     },
 
@@ -2569,14 +2569,19 @@ const validate = {
      */
     bind_dirty: function() {
         // Watch for control changes and call dirty()
-        var dirtykey = function(event) { if (event.keyCode != 9) { validate.dirty(true); } };
-        var dirtychange = function(event) { validate.dirty(true); };
+        // These are control keys that should not trigger form dirtying (tab, cursor keys, ctrl/shift/alt, windows key, scroll up, etc)
+        // See http://www.javascriptkeycode.com/
+        const ctrl_keys = [ 9, 16, 17, 18, 19, 20, 27, 33, 34, 35, 36, 37, 38, 39, 
+            40, 45, 91, 92, 93, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 144, 145 ]
+        const dirtykey = function(event) { if (ctrl_keys.indexOf(event.keyCode) == -1) { validate.dirty(true); } };
+        const dirtychange = function(event) { validate.dirty(true); };
         validate.active = true;
         $("#asm-content .asm-checkbox").change(dirtychange);
         $("#asm-content .asm-datebox").change(dirtychange);
         $("#asm-content .asm-selectbox, #asm-content .asm-doubleselectbox, #asm-content .asm-halfselectbox, #asm-content .selectbox, #asm-content .asm-bsmselect").change(dirtychange);
         $("#asm-content .asm-textbox, #asm-content .asm-doubletextbox, #asm-content .asm-halftextbox, #asm-content .asm-textarea, #asm-content .asm-richtextarea, #asm-content .asm-textareafixed, #asm-content .asm-textareafixeddouble").change(dirtychange);
-        $("#asm-content .asm-textbox, #asm-content .asm-doubletextbox, #asm-content .asm-halftextbox, #asm-content .asm-textarea, #asm-content .asm-richtextarea, #asm-content .asm-textareafixed, #asm-content .asm-textareafixeddouble").keyup(dirtykey).bind("paste", dirtychange).bind("cut", dirtychange);
+        $("#asm-content .asm-textbox, #asm-content .asm-doubletextbox, #asm-content .asm-halftextbox, #asm-content .asm-textarea, #asm-content .asm-richtextarea, #asm-content .asm-textareafixed, #asm-content .asm-textareafixeddouble").bind("paste", dirtychange).bind("cut", dirtychange);
+        $("#asm-content .asm-textbox, #asm-content .asm-doubletextbox, #asm-content .asm-halftextbox, #asm-content .asm-textarea, #asm-content .asm-richtextarea, #asm-content .asm-textareafixed, #asm-content .asm-textareafixeddouble").keyup(dirtykey);
         // Bind CTRL+S/META+S on Mac to clicking the save button
         Mousetrap.bind(["ctrl+s", "meta+s"], function(e) { $("#button-save").click(); return false; });
         // Watch for links being clicked and the page being navigated away from
