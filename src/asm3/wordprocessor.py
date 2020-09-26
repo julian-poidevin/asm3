@@ -109,6 +109,25 @@ def fw(s):
     if s.find(" ") == -1: return s
     return s.split(" ")[0]
 
+def separate_results(rows, f):
+    """ Given a list of result rows, looks at field f and produces
+        a list containing a new list of result rows for each
+        unique value of f. 
+    """
+    types = {}
+    result = []
+    for x in rows:
+        if x[f] not in types:
+            types[x[f]] = ""
+    for k in types.keys():
+        orows = []
+        for x in rows:
+            if x[f] == k:
+                orows.append(x)
+        result.append(orows)
+    print(result)
+    return result
+
 def additional_field_tags(dbo, fields, prefix = ""):
     """ Process additional fields and returns them as tags """
     l = dbo.locale
@@ -708,6 +727,14 @@ def animal_tags(dbo, a, includeAdditional=True, includeCosts=True, includeDiet=T
             ( "CREATEDBY", _("By", l)),
             ( "COMMENTS", _("Comments", l))
         ))
+        # Generate an ANIMALLOGSTYPE for each type represented in the logs
+        for logst in separate_results(logs, "LOGTYPENAME"):
+            tags["ANIMALLOGS%s" % logst[0]["LOGTYPENAME"].replace(" ", "").upper()] = html_table(l, logst, (
+                ( "DATE", _("Date", l)),
+                ( "LOGTYPENAME", _("Type", l)),
+                ( "CREATEDBY", _("By", l)),
+                ( "COMMENTS", _("Comments", l))
+            ))
 
     return tags
 
@@ -1173,6 +1200,7 @@ def person_tags(dbo, p, includeImg=False, includeDonations=False, includeVoucher
         "OWNERLASTCHANGEDBYNAME" : p["LASTCHANGEDBY"],
         "OWNERLASTCHANGEDDATE"  : python2display(l, p["LASTCHANGEDDATE"]),
         "IDCHECK"               : asm3.utils.iif(p["IDCHECK"] == 1, _("Yes", l), _("No", l)),
+        "HOMECHECKEDDATE"       : python2display(l, p["DATELASTHOMECHECKED"]),
         "HOMECHECKEDBYNAME"     : p["HOMECHECKEDBYNAME"],
         "HOMECHECKEDBYEMAIL"    : p["HOMECHECKEDBYEMAIL"],
         "HOMECHECKEDBYHOMETELEPHONE": p["HOMECHECKEDBYHOMETELEPHONE"],

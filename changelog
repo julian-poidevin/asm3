@@ -1,6 +1,14 @@
 44
 ================
 
+26/09/20 Consistent keyboard handling for alphanumber widget #914
+25/09/20 Email address books #179
+25/09/20 Add HomeCheckedDate person wordkey
+24/09/20 Use pickup address and brought in by when lost->shelter matching
+23/09/20 Support good with kids over 5/12 when csv importing
+22/09/20 Completion actions not appearing under audit slider #909
+22/09/20 AnimalLogsTYPE wordkey/token #912
+22/09/20 Remove signature placeholders on document sign preview #910
 11/09/20 Advanced find for pickup location/reason for entry #683
 11/09/20 Missing view person permission breaks staff rota
 07/09/20 Apply DST to service calls #899

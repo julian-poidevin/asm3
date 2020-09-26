@@ -883,6 +883,8 @@ OwnerID
     The ID of the person record
 IDCheck
     “Yes” if the owner has been homechecked 
+HomeCheckedDate
+    The date this person was homechecked
 HomeCheckedByName
     The name of the person who homechecked this person
 HomeCheckedByEmail
@@ -1346,6 +1348,8 @@ AnimalMedicals
    Inserts a table containing all of the animal's medical treatments
 AnimalLogs
    Inserts a table containing all of the animal's log entries
+AnimalLogsTYPE
+   Inserts a table containing all of the animal's log entries of TYPE
 IncidentLogs
    Inserts a table containing all of the incident's log entries
 LitterMates
