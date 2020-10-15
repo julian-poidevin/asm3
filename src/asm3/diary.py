@@ -87,7 +87,7 @@ def email_note_on_complete(dbo, n, username):
     Emails the creator of a diary note n with the note's content 
     username the user triggering the send by completing a diary
     """
-    if not asm3.configuration.email_diary_on_change(dbo): return
+    if not asm3.configuration.email_diary_on_complete(dbo): return
     l = dbo.locale
     allusers = asm3.users.get_users(dbo)
     s = asm3.i18n._("Diary completion triggered by {0} on {1}", l).format(username, asm3.i18n.python2display(l, dbo.now()))
@@ -390,7 +390,7 @@ def update_diary_from_form(dbo, username, post):
         "DateCompleted":    post.date("completed")
     }, username)
 
-    if post.date("completed") is not None:
+    if post.date("completed") is None:
         email_note_on_change(dbo, get_diary(dbo, diaryid), username)
     else:
         email_note_on_complete(dbo, get_diary(dbo, diaryid), username)

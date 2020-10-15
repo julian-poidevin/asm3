@@ -107,6 +107,9 @@ DEFAULTS = {
     "AnnualFiguresSplitAdoptions": "Yes",
     "AnonymisePersonalData": "No",
     "AnonymiseAfterYears": "0",
+    "AuditOnViewRecord": "Yes",
+    "AuditOnViewReport": "Yes",
+    "AuditOnSendEmail": "Yes",
     "AutoCancelReservesDays": "14",
     "AutoDefaultShelterCode": "Yes",
     "AutoDefaultVaccBatch": "Yes",
@@ -567,6 +570,15 @@ def anonymise_personal_data(dbo):
 def anonymise_after_years(dbo):
     return cint(dbo, "AnonymiseAfterYears", DEFAULTS["AnonymiseAfterYears"])
 
+def audit_on_view_record(dbo):
+    return cboolean(dbo, "AuditOnViewRecord", DEFAULTS["AuditOnViewRecord"])
+
+def audit_on_view_report(dbo):
+    return cboolean(dbo, "AuditOnViewReport", DEFAULTS["AuditOnViewReport"])
+
+def audit_on_send_email(dbo):
+    return cboolean(dbo, "AuditOnSendEmail", DEFAULTS["AuditOnSendEmail"])
+
 def auto_cancel_reserves_days(dbo):
     return cint(dbo, "AutoCancelReservesDays", int(DEFAULTS["AutoCancelReservesDays"]))
 
@@ -710,6 +722,9 @@ def default_entry_reason(dbo):
 def default_incident(dbo):
     return cint(dbo, "DefaultIncidentType", 1)
 
+def default_jurisdiction(dbo):
+    return cint(dbo, "DefaultJurisdiction", 1)
+
 def default_location(dbo):
     return cint(dbo, "AFDefaultLocation", 1)
 
@@ -802,6 +817,9 @@ def fosterer_emails_reply_to(dbo):
 
 def fosterer_emails_msg(dbo):
     return cstring(dbo, "FostererEmailsMsg")
+
+def foundanimals_cutoff_days(dbo):
+    return cint(dbo, "FoundAnimalsCutoffDays")
 
 def foundanimals_email(dbo):
     return cstring(dbo, "FoundAnimalsEmail")
@@ -994,6 +1012,9 @@ def organisation_country(dbo):
 def organisation_telephone(dbo):
     return cstring(dbo, "OrganisationTelephone", DEFAULTS["OrganisationTelephone"])
 
+def osm_map_tiles_override(dbo):
+    return cstring(dbo, "OSMMapTilesOverride")
+
 def owner_name_format(dbo):
     return cstring(dbo, "OwnerNameFormat", DEFAULTS["OwnerNameFormat"])
 
@@ -1053,6 +1074,9 @@ def helpinglostpets_password(dbo):
 
 def helpinglostpets_postal(dbo):
     return cstring(dbo, "HelpingLostPetsPostal")
+
+def petlink_cutoff_days(dbo):
+    return cint(dbo, "PetLinkCutoffDays")
 
 def petlink_email(dbo):
     return cstring(dbo, "PetLinkEmail")

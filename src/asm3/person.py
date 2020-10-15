@@ -970,6 +970,7 @@ def merge_person_details(dbo, username, personid, d, force=False):
     merge("worktelephone", "WORKTELEPHONE")
     merge("mobiletelephone", "MOBILETELEPHONE")
     merge("emailaddress", "EMAILADDRESS")
+    merge("comments", "COMMENTS")
 
 def merge_gdpr_flags(dbo, username, personid, flags):
     """
@@ -1218,7 +1219,7 @@ def delete_person(dbo, username, personid):
     for t in [ "adoption", "clinicappointment", "ownercitation", "ownerdonation", "ownerlicence", "ownertraploan", "ownervoucher" ]:
         dbo.delete(t, "OwnerID=%d" % personid, username)
     dbo.delete("owner", personid, username)
-    asm3.dbfs.delete_path(dbo, "/owner/%d" % personid)
+    # asm3.dbfs.delete_path(dbo, "/owner/%d" % personid) # Use maint_db_delete_orphaned_media to remove dbfs later if needed
 
 def insert_rota_from_form(dbo, username, post):
     """

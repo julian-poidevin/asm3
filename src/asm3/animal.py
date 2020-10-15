@@ -2482,6 +2482,8 @@ def send_email_from_form(dbo, username, post):
     logtype = post.integer("logtype")
     body = post["body"]
     rv = asm3.utils.send_email(dbo, emailfrom, emailto, emailcc, emailbcc, subject, body, "html")
+    if asm3.configuration.audit_on_send_email(dbo): 
+        asm3.audit.email(dbo, username, emailfrom, emailto, emailcc, emailbcc, subject, body)
     if addtolog == 1:
         asm3.log.add_log_email(dbo, username, asm3.log.ANIMAL, post.integer("animalid"), logtype, emailto, subject, body)
     return rv
@@ -2996,7 +2998,7 @@ def delete_animal(dbo, username, animalid, ignore_movements=False):
     for t in [ "adoption", "animalmedical", "animalmedicaltreatment", "animaltest", "animaltransport", "animalvaccination", "clinicappointment" ]:
         dbo.delete(t, "AnimalID=%d" % animalid, username)
     dbo.delete("animal", animalid, username)
-    asm3.dbfs.delete_path(dbo, "/animal/%d" % animalid)
+    # asm3.dbfs.delete_path(dbo, "/animal/%d" % animalid) # Use maint_db_delete_orphaned_media to remove dbfs later if needed
 
 def delete_animals_from_form(dbo, username, post):
     """

@@ -1,6 +1,31 @@
 44
 ================
 
+14/10/20 Fix SavourLife bug where fail condition marked adopted
+13/10/20 Leave DBFS intact on delete for later deletion if needed
+12/10/20 Support report SQL tokens in SQL Interface #901
+09/10/20 Merge person comments when importing from CSV
+09/10/20 Option to hide record views in audit trail (on by default)
+08/10/20 Hide TinyMCE outline/drag handles during printing
+07/10/20 maint_db_dump_lookups cron target
+06/10/20 Fix TinyMCE default fontsize to match old version
+06/10/20 Allow template paths to be specified in rename
+06/10/20 Overridable default cut off of 3 years for PetLink chips
+06/10/20 Allow OSM tile location to be overridden
+05/10/20 Add locale for Mauritius, correct currency symbol for India
+05/10/20 Extra common punctuation in alphanumber for tattoo/chip
+05/10/20 Upgrade to TinyMCE 5.3.1
+05/10/20 Start date missing from AnimalMedicals wordkey
+05/10/20 Non-neutered adoptable status should use alert config item
+01/10/20 SavourLife now support deleting listings via API
+30/09/20 asm3-adoptable-reserved class and manual example
+30/09/20 Support for writing record and report views to audit log #703
+30/09/20 Support for writing sent emails to the audit log #639
+29/09/20 Support MOVEMENTTYPE==0 to create reservations in import
+29/09/20 ANIMALENTRYCATEGORY import field, export new fields
+28/09/20 Diary note completion messages linked to wrong config item
+27/09/20 Add ANIMALJURISDICTION csv import field
+26/09/20 Close prediction attack flaw in document signing by email #917
 26/09/20 Consistent keyboard handling for alphanumber widget #914
 25/09/20 Email address books #179
 25/09/20 Add HomeCheckedDate person wordkey

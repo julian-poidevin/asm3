@@ -20,10 +20,10 @@ import sys
 
 VALID_FIELDS = [
     "ANIMALNAME", "ANIMALSEX", "ANIMALTYPE", "ANIMALCOLOR", "ANIMALBREED1", 
-    "ANIMALBREED2", "ANIMALDOB", "ANIMALLOCATION", "ANIMALUNIT", 
+    "ANIMALBREED2", "ANIMALDOB", "ANIMALLOCATION", "ANIMALUNIT", "ANIMALJURISDICTION", 
     "ANIMALSPECIES", "ANIMALAGE", 
     "ANIMALCOMMENTS", "ANIMALMARKINGS", "ANIMALNEUTERED", "ANIMALNEUTEREDDATE", "ANIMALMICROCHIP", "ANIMALMICROCHIPDATE", 
-    "ANIMALENTRYDATE", "ANIMALDECEASEDDATE", "ANIMALCODE", "ANIMALFLAGS",
+    "ANIMALENTRYDATE", "ANIMALENTRYCATEGORY", "ANIMALDECEASEDDATE", "ANIMALCODE", "ANIMALFLAGS",
     "ANIMALREASONFORENTRY", "ANIMALHIDDENDETAILS", "ANIMALNOTFORADOPTION", "ANIMALNONSHELTER", 
     "ANIMALGOODWITHCATS", "ANIMALGOODWITHDOGS", "ANIMALGOODWITHKIDS", 
     "ANIMALHOUSETRAINED", "ANIMALHEALTHPROBLEMS", "ANIMALIMAGE",
@@ -398,6 +398,12 @@ def csvimport(dbo, csvdata, encoding = "utf-8-sig", user = "", createmissinglook
             a["internallocation"] = gkl(dbo, row, "ANIMALLOCATION", "internallocation", "LocationName", createmissinglookups)
             if a["internallocation"] == "0":
                 a["internallocation"] = str(asm3.configuration.default_location(dbo))
+            a["jurisdiction"] = gkl(dbo, row, "ANIMALJURISDICTION", "jurisdiction", "JurisdictionName", createmissinglookups)
+            if a["jurisdiction"] == "0":
+                a["jurisdiction"] = str(asm3.configuration.default_jurisdiction(dbo))
+            a["entryreason"] = gkl(dbo, row, "ANIMALENTRYCATEGORY", "entryreason", "ReasonName", createmissinglookups)
+            if a["entryreason"] == "0":
+                a["entryreason"] = str(asm3.configuration.default_entry_reason(dbo))
             a["unit"] = gks(row, "ANIMALUNIT")
             a["comments"] = gks(row, "ANIMALCOMMENTS")
             a["markings"] = gks(row, "ANIMALMARKINGS")
@@ -453,6 +459,8 @@ def csvimport(dbo, csvdata, encoding = "utf-8-sig", user = "", createmissinglook
                 p["county"] = gks(row, "ORIGINALOWNERSTATE")
                 p["postcode"] = gks(row, "ORIGINALOWNERZIPCODE")
                 p["jurisdiction"] = gkl(dbo, row, "ORIGINALOWNERJURISDICTION", "jurisdiction", "JurisdictionName", createmissinglookups)
+                if p["jurisdiction"] == "0":
+                    p["jurisdiction"] = str(asm3.configuration.default_jurisdiction(dbo))
                 p["hometelephone"] = gks(row, "ORIGINALOWNERHOMEPHONE")
                 p["worktelephone"] = gks(row, "ORIGINALOWNERWORKPHONE")
                 p["mobiletelephone"] = gks(row, "ORIGINALOWNERCELLPHONE")
@@ -529,6 +537,8 @@ def csvimport(dbo, csvdata, encoding = "utf-8-sig", user = "", createmissinglook
             p["county"] = gks(row, "PERSONSTATE")
             p["postcode"] = gks(row, "PERSONZIPCODE")
             p["jurisdiction"] = gkl(dbo, row, "PERSONJURISDICTION", "jurisdiction", "JurisdictionName", createmissinglookups)
+            if p["jurisdiction"] == "0":
+                p["jurisdiction"] = str(asm3.configuration.default_jurisdiction(dbo))
             p["hometelephone"] = gks(row, "PERSONHOMEPHONE")
             p["worktelephone"] = gks(row, "PERSONWORKPHONE")
             p["mobiletelephone"] = gks(row, "PERSONCELLPHONE")
@@ -589,8 +599,12 @@ def csvimport(dbo, csvdata, encoding = "utf-8-sig", user = "", createmissinglook
             movetype = gks(row, "MOVEMENTTYPE")
             if movetype == "": movetype = "1" # Default to adoption if not supplied
             m["type"] = str(movetype)
-            m["movementdate"] = gkd(dbo, row, "MOVEMENTDATE", True)
-            m["returndate"] = gkd(dbo, row, "MOVEMENTRETURNDATE")
+            if movetype == "0":
+                m["reservationdate"] = gkd(dbo, row, "MOVEMENTDATE", True)
+                m["reservationcancelled"] = gkd(dbo, row, "MOVEMENTRETURNDATE")
+            else:
+                m["movementdate"] = gkd(dbo, row, "MOVEMENTDATE", True)
+                m["returndate"] = gkd(dbo, row, "MOVEMENTRETURNDATE")
             m["comments"] = gks(row, "MOVEMENTCOMMENTS")
             m["returncategory"] = str(asm3.configuration.default_entry_reason(dbo))
             try:
@@ -842,6 +856,7 @@ def csvexport_animals(dbo, dataset, animalids = "", includephoto = False):
         "ANIMALBREED2", "ANIMALDOB", "ANIMALLOCATION", "ANIMALUNIT", "ANIMALSPECIES", "ANIMALCOMMENTS",
         "ANIMALHIDDENDETAILS", "ANIMALHEALTHPROBLEMS", "ANIMALMARKINGS", "ANIMALREASONFORENTRY", "ANIMALNEUTERED",
         "ANIMALNEUTEREDDATE", "ANIMALMICROCHIP", "ANIMALMICROCHIPDATE", "ANIMALENTRYDATE", "ANIMALDECEASEDDATE",
+        "ANIMALJURISDICTION", "ANIMALENTRYCATEGORY",
         "ANIMALNOTFORADOPTION", "ANIMALNONSHELTER", "ANIMALGOODWITHCATS", "ANIMALGOODWITHDOGS", "ANIMALGOODWITHKIDS",
         "ANIMALHOUSETRAINED", "ORIGINALOWNERTITLE", "ORIGINALOWNERINITIALS", "ORIGINALOWNERFIRSTNAME",
         "ORIGINALOWNERLASTNAME", "ORIGINALOWNERADDRESS", "ORIGINALOWNERCITY", "ORIGINALOWNERSTATE", "ORIGINALOWNERZIPCODE",
@@ -899,6 +914,8 @@ def csvexport_animals(dbo, dataset, animalids = "", includephoto = False):
         row["ANIMALHEALTHPROBLEMS"] = a["HEALTHPROBLEMS"]
         row["ANIMALMARKINGS"] = a["MARKINGS"]
         row["ANIMALREASONFORENTRY"] = a["REASONFORENTRY"]
+        row["ANIMALENTRYCATEGORY"] = a["ENTRYREASONNAME"]
+        row["ANIMALJURISDICTION"] = a["JURISDICTIONNAME"]
         row["ANIMALNEUTERED"] = a["NEUTERED"]
         row["ANIMALNEUTEREDDATE"] = asm3.i18n.python2display(l, a["NEUTEREDDATE"])
         row["ANIMALMICROCHIP"] = a["IDENTICHIPNUMBER"]

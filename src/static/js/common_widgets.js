@@ -248,9 +248,9 @@ $.fn.number = function() {
     });
 };
 
-// Textbox that should only contain numbers and letters (no spaces or punctuation)
+// Textbox that should only contain numbers and letters (numbers, latin alphabet, no spaces, limited punctuation)
 $.fn.alphanumber = function() {
-    const allowed = new RegExp("[0-9A-Za-z\\.]");
+    const allowed = new RegExp("[0-9A-Za-z\\.\\*\\-]");
     this.each(function() {
         $(this).keypress(function(e) {
             let k = e.charCode || e.keyCode;
@@ -1001,7 +1001,7 @@ $.widget("asm.callout", {
         button.append(html.icon("callout"));
 
         // Create the callout
-        $("#asm-content").append('<div id="' + popupid + '">' + html.info(content) + '</div>');
+        $("#asm-content").append('<div id="' + popupid + '" class="asm-callout-popup">' + html.info(content) + '</div>');
         let popup = $("#" + popupid);
         this.options.popup = popup;
         popup.css("display", "none");
@@ -1227,7 +1227,6 @@ $.widget("asm.richtextarea", {
                 "insertdatetime media nonbreaking table contextmenu directionality",
                 "emoticons template paste textcolor"
                 ],
-            theme: "modern",
             inline: true,
             menubar: false,
             statusbar: false, 
@@ -1251,6 +1250,9 @@ $.widget("asm.richtextarea", {
 
             setup: function(ed) {
                 self.editor = ed;
+                ed.on("init", function(ed) {
+                    $(".tox-tinymce-inline").css({ "z-index": 101 }); // Prevent floating under dialogs
+                });
             }
 
         });
