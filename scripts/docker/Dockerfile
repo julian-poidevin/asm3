@@ -1,20 +1,19 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 ADD ./ /tmp/asm3
+WORKDIR /tmp/asm3/
 
-WORKDIR /tmp/asm3/install/deb
+RUN apt-get update && apt-get install -y make 
 
-RUN ./makedeb.sh && rm -rf sheltermanager3
+RUN make deps
+RUN make all
+RUN make dist
 
-RUN apt-get update \
-    && apt-get install -y make python3 python3-pil python3-webpy python3-mysqldb python3-psycopg2 \
-    && apt-get install -y imagemagick \
-    && apt-get install -y wkhtmltopdf \
-    && apt-get install -y python3-reportlab \
-    && apt-get install -y python3-requests \
-    && apt-get install -y python3-boto3
+RUN cd ./install/deb
+
+RUN ./makedeb.sh
 
 RUN dpkg -i sheltermanager3_`cat ../../VERSION`_all.deb
 

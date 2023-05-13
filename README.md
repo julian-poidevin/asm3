@@ -31,7 +31,7 @@ Extra, non-mandatory packages:
 
 Packages necessary for building, static checkers, installers and manuals:
 
-* apt-get install exuberant-ctags nodejs npm pychecker python3-sphinx
+* apt-get install exuberant-ctags nodejs npm python3-sphinx
   python3-sphinx-rtd-theme texlive-latex-base texlive-latex-extra latexmk
 
 Node and npm are used for transpiling javascript code for older browsers and
