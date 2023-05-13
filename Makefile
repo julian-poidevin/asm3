@@ -125,10 +125,10 @@ tests:
 
 deps:
 	@echo "[deps] ========================="
-	apt-get install python3 python3-pip python3-cheroot python3-pil python3-mysqldb python3-psycopg2
-	apt-get install python3-memcache python3-requests python3-reportlab python3-xhtml2pdf
-	apt-get install python3-sphinx python3-sphinx-rtd-theme texlive-latex-base texlive-latex-extra latexmk
-	apt-get install exuberant-ctags flake8 imagemagick wkhtmltopdf nodejs npm memcached
+	apt-get install -y python3 python3-pip python3-cheroot python3-pil python3-mysqldb python3-psycopg2
+	apt-get install -y python3-memcache python3-requests python3-reportlab python3-xhtml2pdf
+	apt-get install -y python3-sphinx python3-sphinx-rtd-theme texlive-latex-base texlive-latex-extra latexmk
+	apt-get install -y exuberant-ctags flake8 imagemagick wkhtmltopdf nodejs npm memcached
 	npm install
 
 
